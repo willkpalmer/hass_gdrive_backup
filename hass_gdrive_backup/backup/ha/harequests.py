@@ -334,3 +334,15 @@ class HaRequests():
 
     async def updateEntity(self, entity, data):
         await self._postHaData("states/" + entity, data)
+
+    async def deleteEntityState(self, entity) -> None:
+        """Removes a state set through the REST API. Missing states are fine."""
+        url = self.getSupervisorURL().with_path("/core/api/states/" + entity)
+        async with self.session.delete(url, headers=self._getAuthHeaders()) as resp:
+            if resp.status != 404:
+                resp.raise_for_status()
+
+    @supervisor_call
+    async def mqttServiceInfo(self) -> Dict[str, Any]:
+        """Connection details for the MQTT broker the Supervisor provides (e.g. the Mosquitto add-on)."""
+        return await self._getHassioData(self.getSupervisorURL().with_path("services/mqtt"))

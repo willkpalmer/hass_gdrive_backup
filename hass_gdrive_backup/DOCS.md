@@ -160,13 +160,24 @@ When set, excludes the comma-separated list of addons by creating a partial back
 
 _Note_: Folders and add-ons must be identified by their "slug" name. It is recommended to use the `Settings` dialog within the add-on web UI to configure partial backups since these names are esoteric and hard to find.
 
+### Option: `mqtt_discovery` (default: True)
+
+When an MQTT broker is set up in Home Assistant (for example the Mosquitto broker add-on with the MQTT integration), the add-on creates its sensors through MQTT discovery, grouped under a "Google Drive Backup" device:
+
+- `binary_sensor.backups_stale`: on when backups have stopped being made or uploaded
+- `sensor.backup_state`: `backed_up`, `waiting` or `error`, with details about every backup as attributes
+- "Last backup", "Last upload" and "Next backup" timestamps
+- "Backups in Home Assistant" and "Backups in Google Drive" counts
+
+These are regular entities: you can rename them and change their settings in Home Assistant, and they keep their last value across restarts. When no MQTT broker is available, or this option is false, the add-on sets `binary_sensor.backups_stale` and `sensor.backup_state` through Home Assistant's API instead, as it always has; those can't be edited in the UI and are unavailable after Home Assistant restarts until the add-on updates them.
+
 ### Option: `enable_backup_stale_sensor` (default: True)
 
-When false, the add-on will not publish the [binary_sensor.backups_stale](https://github.com/willkpalmer/hass_gdrive_backup#how-will-i-know-this-will-be-there-when-i-need-it) stale sensor.
+When false (and MQTT isn't used, see `mqtt_discovery`), the add-on will not publish the [binary_sensor.backups_stale](https://github.com/willkpalmer/hass_gdrive_backup#how-will-i-know-this-will-be-there-when-i-need-it) stale sensor.
 
 ### Option: `enable_backup_state_sensor` (default: True)
 
-When false, the add-on will not publish the [sensor.backup_state](https://github.com/willkpalmer/hass_gdrive_backup#how-will-i-know-this-will-be-there-when-i-need-it) sensor.
+When false (and MQTT isn't used, see `mqtt_discovery`), the add-on will not publish the [sensor.backup_state](https://github.com/willkpalmer/hass_gdrive_backup#how-will-i-know-this-will-be-there-when-i-need-it) sensor.
 
 ### Option: `notify_for_stale_backups` (default: True)
 

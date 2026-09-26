@@ -79,6 +79,7 @@ class SimulatedSupervisor(BaseServer):
         }
 
         # Simulates Home Assistant Core's backup websocket API (proxied by the supervisor at /core/websocket)
+        self._mqtt_service = None
         self._core_websocket_available = True
         self._core_event_subscribers = []
         self._core_websockets = set()
@@ -120,6 +121,8 @@ class SimulatedSupervisor(BaseServer):
             post("/core/api/services/persistent_notification/create", self._createNotification),
             post("/core/api/events/{name}", self._haEventUpdate),
             post("/core/api/states/{entity}", self._haStateUpdate),
+            delete("/core/api/states/{entity}", self._haStateDelete),
+            get('/services/mqtt', self._mqttService),
             post('/auth', self._authenticate),
             get('/auth', self._authenticate),
             get('/info', self._miscInfo),
@@ -530,6 +533,25 @@ class SimulatedSupervisor(BaseServer):
         self._entities[entity] = json['state']
         self._attributes[entity] = json['attributes']
         return Response()
+
+    async def _haStateDelete(self, request: Request):
+        await self._verifyHeader(request)
+        entity = request.match_info.get('entity')
+        if entity not in self._entities:
+            raise HTTPNotFound()
+        del self._entities[entity]
+        self._attributes.pop(entity, None)
+        return Response()
+
+    def setMqttService(self, info):
+        """Sets the MQTT broker details the supervisor reports, or None when no broker is installed."""
+        self._mqtt_service = info
+
+    async def _mqttService(self, request: Request):
+        await self._verifyHeader(request)
+        if self._mqtt_service is None:
+            return self._formatErrorResponse("Service not enabled")
+        return self._formatDataResponse(self._mqtt_service)
 
     async def _haEventUpdate(self, request: Request):
         await self._verifyHeader(request)

@@ -11,3 +11,4 @@ aiohttp-jinja2
 pytz
 tzlocal
 aioping
+aiomqtt

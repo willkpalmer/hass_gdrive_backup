@@ -7,6 +7,7 @@ from ..model import Coordinator, Backup
 from ..config import Config, Setting
 from ..util import GlobalInfo, Backoff, Estimator
 from .harequests import HaRequests
+from .mqtt import MqttPublisher
 from ..time import Time
 from ..worker import Worker
 from ..const import SOURCE_HA, SOURCE_GOOGLE_DRIVE
@@ -33,8 +34,9 @@ REASSURING_MESSAGE = "Unable to reach Home Assistant (HTTP {0}).  This is normal
 @singleton
 class HaUpdater(Worker):
     @inject
-    def __init__(self, requests: HaRequests, coordinator: Coordinator, config: Config, time: Time, global_info: GlobalInfo):
+    def __init__(self, requests: HaRequests, coordinator: Coordinator, config: Config, time: Time, global_info: GlobalInfo, mqtt: MqttPublisher):
         self._config = config
+        self._mqtt = mqtt
         super().__init__("Sensor Updater", self.update, time, self.getInterval)
         self._time = time
         self._coordinator = coordinator
@@ -60,10 +62,13 @@ class HaUpdater(Worker):
 
     async def update(self):
         try:
-            if self._config.get(Setting.ENABLE_BACKUP_STALE_SENSOR):
-                await self._requests.updateBackupStaleSensor('on' if self._stale() else 'off')
-            if self._config.get(Setting.ENABLE_BACKUP_STATE_SENSOR):
-                await self._maybeSendBackupUpdate()
+            if not self._config.get(Setting.CALL_BACKUP_SNAPSHOT) and await self._mqtt.usesMqtt():
+                await self._mqtt.publishState(self._buildMqttState())
+            else:
+                if self._config.get(Setting.ENABLE_BACKUP_STALE_SENSOR):
+                    await self._requests.updateBackupStaleSensor('on' if self._stale() else 'off')
+                if self._config.get(Setting.ENABLE_BACKUP_STATE_SENSOR):
+                    await self._maybeSendBackupUpdate()
             if self._config.get(Setting.NOTIFY_FOR_STALE_BACKUPS):
                 if self._stale() and not self._notified:
                     if self._info.url is None or len(self._info.url) == 0:
@@ -125,6 +130,23 @@ class HaUpdater(Worker):
             return "error"
         else:
             return "waiting" if self._info._first_sync else "backed_up"
+
+    def _buildMqttState(self):
+        update = self._buildBackupUpdate()
+        attributes = update["attributes"]
+
+        def orNone(value):
+            return None if value == "Never" else value
+        return {
+            "stale": self._stale(),
+            "state": update["state"],
+            "last_backup": orNone(attributes["last_backup"]),
+            "last_upload": orNone(attributes["last_uploaded"]),
+            "next_backup": attributes["next_backup"],
+            "backups_in_home_assistant": attributes["backups_in_home_assistant"],
+            "backups_in_google_drive": attributes["backups_in_google_drive"],
+            "attributes": attributes,
+        }
 
     def triggerRefresh(self):
         self._trigger_once = True

@@ -1,3 +1,7 @@
+## v0.6.0 [2026-09-26]
+
+- The add-on's sensors are now real Home Assistant entities when an MQTT broker is set up (for example the Mosquitto add-on). They're created through MQTT discovery under a "Google Drive Backup" device, can be renamed and customized, keep their values across Home Assistant restarts, and include new "Last backup", "Last upload", "Next backup" and backup count sensors. Without a broker (or with `mqtt_discovery: false`) the add-on sets its two sensors through Home Assistant's API as before.
+
 ## v0.5.0 [2026-09-26]
 
 - Uploads to Google Drive are now verified: the add-on checksums each backup as it uploads it and compares that with the checksum Google Drive reports. Verified backups get a new icon in the web UI. If they don't match, the copy in Google Drive is deleted and the upload is retried, instead of keeping a backup that might not restore.
