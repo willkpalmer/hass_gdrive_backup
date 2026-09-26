@@ -34,4 +34,4 @@ def test_settings_present():
         all.add(setting.value)
 
     for setting in addon_config["schema"]:
-        assert setting in all, setting + " not present in config.json"
+        assert setting in all, setting + " not present in config.yaml"

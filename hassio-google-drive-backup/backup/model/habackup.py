@@ -13,6 +13,28 @@ logger = getLogger(__name__)
 HA_KEY_TEXT = "Home Assistant's backup metadata"
 
 
+def _parseSize(data: Dict[str, Any]) -> float:
+    # Newer supervisors report an exact byte count, older ones only report megabytes.
+    if data.get("size_bytes") is not None:
+        return float(data["size_bytes"])
+    if data.get("size") is not None:
+        return float(data["size"]) * 1024 * 1024
+    # Supervisors that support multiple backup locations may only report size per-location.
+    for attributes in (data.get("location_attributes") or {}).values():
+        if attributes.get("size_bytes") is not None:
+            return float(attributes["size_bytes"])
+    return float(ensureKey("size", data, HA_KEY_TEXT)) * 1024 * 1024
+
+
+def _parseProtected(data: Dict[str, Any]) -> bool:
+    if data.get("protected") is not None:
+        return data["protected"]
+    location_attributes = data.get("location_attributes") or {}
+    if len(location_attributes) > 0:
+        return any(attributes.get("protected", False) for attributes in location_attributes.values())
+    return ensureKey('protected', data, HA_KEY_TEXT)
+
+
 class HABackup(AbstractBackup):
     """
     Represents a Home Assistant backup stored locally in Home Assistant
@@ -23,11 +45,11 @@ class HABackup(AbstractBackup):
             name=ensureKey('name', data, HA_KEY_TEXT),
             slug=ensureKey('slug', data, HA_KEY_TEXT),
             date=Time.parse(ensureKey('date', data, HA_KEY_TEXT)),
-            size=float(ensureKey("size", data, HA_KEY_TEXT)) * 1024 * 1024,
+            size=_parseSize(data),
             source=SOURCE_HA,
             backupType=ensureKey('type', data, HA_KEY_TEXT),
             version=ensureKey('homeassistant', data, HA_KEY_TEXT),
-            protected=ensureKey('protected', data, HA_KEY_TEXT),
+            protected=_parseProtected(data),
             retained=retained,
             uploadable=True,
             details=data,

@@ -1,9 +1,4 @@
-google-api-python-client
-google-auth-httplib2
-google-auth-oauthlib
-oauth2client
-requests
-python-dateutil==2.6.1
+python-dateutil
 watchdog
 pyyaml
 dnspython
@@ -16,7 +11,6 @@ mypy
 aiorun
 aiohttp
 aiodns
-aiofiles
 injector
 autopep8
 colorlog
@@ -26,7 +20,6 @@ google-cloud-firestore
 aiohttp-jinja2
 beautifulsoup4
 firebase-admin
-aiofile
 grpcio
 aioping
 pytz

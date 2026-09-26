@@ -1,3 +1,15 @@
+## v0.113.0 [2026-09-26]
+
+- Updated the add-on for current Home Assistant OS / Supervisor releases:
+  - The add-on manifest is now `config.yaml`, and the repository manifest is now `repository.yaml`.
+  - Added `build.yaml`, building on Home Assistant's current `base-python` images (Python 3.13, Alpine 3.24).
+  - Dropped the `armhf`, `armv7` and `i386` architectures, which Home Assistant stopped supporting in 2025.12.
+  - Switched to the current `map` format (`homeassistant_config` in place of the deprecated `config` folder).
+  - The add-on is now built locally by the Supervisor instead of downloading a prebuilt image.
+- Handle backup metadata from Supervisors that support multiple backup locations (`size_bytes`, `location_attributes`).
+- Removed unused dependencies (`oauth2client`, Google API client libraries, `aiofile(s)`) and a workaround for very old `python-dateutil` versions.
+- Fixed a Python version-specific path that broke the add-on on base images newer than Python 3.11.
+
 ## v0.112.1 [2023-11-03]
 
 - Added warnings about using the "Stop Addons" feature.  I plan on removing this in the near future.  If you'd like to keep the feature around, please give your feedback in [this GitHub issue](https://github.com/sabeechen/hassio-google-drive-backup/issues/940).

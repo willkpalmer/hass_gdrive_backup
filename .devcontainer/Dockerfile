@@ -1,4 +1,4 @@
-FROM python:3.11-buster
+FROM python:3.13-bookworm
 
 WORKDIR /usr/src/install
 RUN apt-get update

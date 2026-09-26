@@ -1,0 +1,7 @@
+**/__pycache__
+**/*.pyc
+tests
+dev
+*.egg-info
+Dockerfile-server
+cloudbuild-*.yaml

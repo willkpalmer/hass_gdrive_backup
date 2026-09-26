@@ -1,11 +1,10 @@
 ARG BUILD_FROM
 FROM $BUILD_FROM
+
 WORKDIR /app
+COPY requirements-addon.txt addon_deps.sh /app/
+RUN sh ./addon_deps.sh
 COPY . /app
-RUN chmod +x addon_deps.sh
-RUN ./addon_deps.sh
-RUN pip3 install .
-COPY config.json /usr/local/lib/python3.11/site-packages/config.json
 
 EXPOSE 1627
 EXPOSE 8099

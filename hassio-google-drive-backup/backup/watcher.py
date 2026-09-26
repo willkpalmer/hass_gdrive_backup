@@ -11,7 +11,7 @@ from backup.time import Time
 from backup.worker import Trigger
 from backup.logger import getLogger
 from backup.ha import HaSource
-from asyncio import get_event_loop
+from asyncio import get_running_loop
 from os.path import join, abspath
 
 logger = getLogger(__name__)
@@ -36,7 +36,7 @@ class Watcher(Trigger, FileSystemEventHandler, Startable):
         self._last_change_time = None
         self._last_log_time = None
         self._last_notified_time = None
-        self._loop = get_event_loop()
+        self._loop = get_running_loop()
 
     async def start(self):
         if not self.config.get(Setting.WATCH_BACKUP_DIRECTORY):

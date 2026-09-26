@@ -1,15 +1,15 @@
 import subprocess
 import os
-import json
+import yaml
 from os.path import abspath, join
 
-with open(abspath(join(__file__, "..", "..", "config.json"))) as f:
-    version = json.load(f)["version"]
+with open(abspath(join(__file__, "..", "..", "config.yaml"))) as f:
+    version = yaml.safe_load(f)["version"]
 print("Version will be: " + version)
 subprocess.run("docker login", shell=True)
 
 
-platforms = ["amd64", "armv7", "aarch64", "armhf", "i386"]
+platforms = ["amd64", "aarch64"]
 
 os.chdir("hassio-google-drive-backup")
 for platform in platforms:

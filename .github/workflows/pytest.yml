@@ -11,13 +11,13 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v5
       with:
-        python-version: '3.11'
+        python-version: '3.13'
     - name: Install dependencies
       run: |
         python -m pip install --upgrade pip
         pip install -r .devcontainer/requirements-dev.txt
     - name: Install fping
-      run: sudo apt-get install fping
+      run: sudo apt-get install -y fping
     - name: Lint with flake8
       run: |
         # stop the build if there are Python syntax errors or undefined names
@@ -49,6 +49,6 @@ jobs:
         flags: unittests
         env_vars: OS,PYTHON
         name: codecov-umbrella
-        fail_ci_if_error: true
+        fail_ci_if_error: false
         path_to_write_report: ./coverage/codecov_report.txt
         verbose: true

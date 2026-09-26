@@ -1,6 +1,4 @@
 aiodns
-aiofiles
-aiofile
 aiohttp
 aiorun
 colorlog
@@ -8,8 +6,6 @@ dnspython
 google-cloud-logging
 google-cloud-firestore
 injector
-oauth2client
-ptvsd
 python-dateutil
 pyyaml
 watchdog

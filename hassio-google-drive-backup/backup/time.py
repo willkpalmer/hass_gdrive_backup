@@ -10,12 +10,7 @@ from dateutil.tz import tzlocal
 
 from injector import inject, singleton
 from dateutil.relativedelta import relativedelta
-import collections
 from dateutil.parser import parse
-
-
-# this hack is for dateutil, it imports Callable from the wrong place
-collections.Callable = collections.abc.Callable
 
 
 logger = getLogger(__name__)

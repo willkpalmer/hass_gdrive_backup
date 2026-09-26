@@ -1,4 +1,4 @@
-import json
+import yaml
 from enum import Enum, unique
 from os.path import abspath, join
 
@@ -507,9 +507,9 @@ def getValidator(name, schema):
 for setting in Setting:
     _LOOKUP[setting.value] = setting
 
-with open(abspath(join(__file__, "..", "..", "..", "config.json"))) as f:
-    # Thsi is a static file included in the container, so don't worry about using JsonFileLoader
-    addon_config = json.load(f)
+with open(abspath(join(__file__, "..", "..", "..", "config.yaml"))) as f:
+    # This is the addon's static manifest included in the container, so don't worry about using JsonFileLoader
+    addon_config = yaml.safe_load(f)
 
 for setting in Setting:
     _VALIDATORS[setting] = getValidator(setting.value, _CONFIG[setting])

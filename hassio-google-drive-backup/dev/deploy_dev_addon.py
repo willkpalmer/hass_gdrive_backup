@@ -1,11 +1,11 @@
 import getpass
 import subprocess
 import os
-import json
+import yaml
 from os.path import abspath, join
 
-with open(abspath(join(__file__, "..", "..", "config.json"))) as f:
-    version = json.load(f)["version"]
+with open(abspath(join(__file__, "..", "..", "config.yaml"))) as f:
+    version = yaml.safe_load(f)["version"]
 
 try:
     p = getpass.getpass("Enter DockerHub Password")

@@ -72,21 +72,19 @@ Any submissions made to the dev branch (including PR's) get automatically built 
 For some changes, just testing locally might not be enough, you may want to run it as a real addon. You can do this roughly following the instruction for [Add-on Testing](https://developers.home-assistant.io/docs/add-ons/testing#local-build). Here are the two methods I've found work best:
 
 - ### Building a Local Addon Container in Home Assistant
-  Copy the folder `hassio-google-drive-backup` (the one with `config.json` inside it) into the local addon folder (you'll need the samba addon or something similar to do so). Modify the uploaded `config.json` to remove the `"image"` line near the bottom. Then in Home Assistant Web-UI go to <kbd>Supervisor</kbd> -> <kbd>Addon-Store</kbd>, <kbd>Reload</kbd>, and the addon should show up under "Local Addons". It should include buttons for building the container, starting/stopping etc.
+  Copy the folder `hassio-google-drive-backup` (the one with `config.yaml` inside it) into the local addon folder (you'll need the samba addon or something similar to do so). Then in Home Assistant Web-UI go to <kbd>Supervisor</kbd> -> <kbd>Addon-Store</kbd>, <kbd>Reload</kbd>, and the addon should show up under "Local Addons". It should include buttons for building the container, starting/stopping etc.
 - ### Building a container
   You could also build the container as a docker container locally, upload it to Docker Hub, and then have Home Assistant download the image. First install docker desktop, then:
   ```bash
   > cd hassio-google-drive-backup
   > docker login
-  > docker build -f Dockerfile-addon -t YOUR_DOCKER_USERNAME/hassio-google-drive-backup-amd64:dev_testing --build-arg BUILD_FROM=homeassistant/amd64-base .
-  > docker push YOUR_DOCKER_USERNAME/hassio-google-drive-backup-amd64:dev-testing
+  > docker build -t YOUR_DOCKER_USERNAME/amd64-hassio-google-drive-backup:dev-testing --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base-python:3.13-alpine3.24 .
+  > docker push YOUR_DOCKER_USERNAME/amd64-hassio-google-drive-backup:dev-testing
   ```
-  Then make a folder in the local addon directory like before, but only copy in config.json. change these two keys in config.json to match what you uploaded:
-  ```json
-  {
-    "image": "YOUR_DOCKER_USERNAME/hassio-google-drive-backup-{arch}",
-    "version": "dev-testing"
-  }
+  Then make a folder in the local addon directory like before, but only copy in config.yaml. Set these two keys in config.yaml to match what you uploaded:
+  ```yaml
+  image: YOUR_DOCKER_USERNAME/{arch}-hassio-google-drive-backup
+  version: dev-testing
   ```
   From there you should be able to see the addon in local addons, and installing will download the container from Docker Hub. To make it see changes, you'll need to rebuild and reupload the container, then uninstall and reinstall the addon in Home Assistant. I've found this to be faster than rebuilding the image from scratch within Home Assistant.
   > Note: Make sure you stop any other versions of the installed addon in Home Assistant before starting it as a local addon.
