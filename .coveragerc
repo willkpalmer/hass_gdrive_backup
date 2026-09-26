@@ -1,7 +1,7 @@
 [run]
 omit =
-    hassio-google-drive-backup/backup/logger.py
-    hassio-google-drive-backup/backup/tracing_session.py
-    hassio-google-drive-backup/backup/ui/debug.py
-    hassio-google-drive-backup/backup/server/cloudlogger.py
-    hassio-google-drive-backup/backup/debug/*
+    hass_gdrive_backup/backup/logger.py
+    hass_gdrive_backup/backup/tracing_session.py
+    hass_gdrive_backup/backup/ui/debug.py
+    hass_gdrive_backup/backup/server/cloudlogger.py
+    hass_gdrive_backup/backup/debug/*

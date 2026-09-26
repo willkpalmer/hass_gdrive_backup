@@ -1,6 +1,6 @@
 # Creates a GitHub Release whenever master carries an add-on version that
 # hasn't been released yet. HACS offers updates based on releases, so
-# bumping "version" in hassio-google-drive-backup/config.yaml and pushing
+# bumping "version" in hass_gdrive_backup/config.yaml and pushing
 # to master is all a release takes. Also runnable by hand from the Actions
 # tab (workflow_dispatch).
 name: Release
@@ -26,7 +26,7 @@ jobs:
       - name: Read add-on version
         id: version
         run: |
-          version=$(yq -r .version hassio-google-drive-backup/config.yaml)
+          version=$(yq -r .version hass_gdrive_backup/config.yaml)
           if [ -z "$version" ] || [ "$version" = "null" ]; then
             echo "::error::No version found in config.yaml"
             exit 1

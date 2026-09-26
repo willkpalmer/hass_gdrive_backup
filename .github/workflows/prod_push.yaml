@@ -4,8 +4,8 @@ on:
 
 env:
   ARCHITECTURES: '["amd64", "aarch64"]'
-  IMAGE_NAME: hassio-google-drive-backup
-  ADDON_DIR: hassio-google-drive-backup
+  IMAGE_NAME: hass_gdrive_backup
+  ADDON_DIR: hass_gdrive_backup
 
 permissions:
   contents: read

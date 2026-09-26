@@ -66,7 +66,7 @@ This addon has been featured by %YOUR_FAVORITE_HA_YOUTUBER% and is often listed 
 
 After you start the addon you have an opportunity to review your settings within the addon's Web-UI before you connect it to Google Drive.  It is recommended to modify the setting this way because the UI makes it easy and explains what each option does.
 
-If you'd still prefer use edit your setting in yaml or through the supervisor, the list of configurable options with explanations is available [here](./hassio-google-drive-backup/DOCS.md#configuration).
+If you'd still prefer use edit your setting in yaml or through the supervisor, the list of configurable options with explanations is available [here](./hass_gdrive_backup/DOCS.md#configuration).
 
 ## FAQ
 ### Is this for me?
@@ -150,7 +150,7 @@ You can add `"backup_time_of_day": "13:00"` to your add-on configuration to make
 
 ### Can I keep older backups for longer?
 
-> This is just an overview of how to keep older backups longer. [See here](https://github.com/sabeechen/hassio-google-drive-backup/blob/master/hassio-google-drive-backup/GENERATIONAL_BACKUP.md) for a more in-depth explanation.
+> This is just an overview of how to keep older backups longer. [See here](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/hass_gdrive_backup/GENERATIONAL_BACKUP.md) for a more in-depth explanation.
 
 The add-on can be configured to keep [generational backups](https://en.wikipedia.org/wiki/Backup_rotation_scheme) on daily, weekly, monthly, and yearly intervals instead of just deleting the oldest backup. This can be useful if, for example, you've made an erroneous change but haven't noticed for several days and all the backups before the change are gone. With a configuration setting like this...
 
@@ -226,7 +226,7 @@ Maybe. You can encrypt your backups by giving a password in the add-on's options
 On a matter of principle, I only keep track of and store information necessary for the add-on to function. To the best of my knowledge the scope of this is:
 
 - You can opt-in to sending error reports from the add-on sent to a database maintained by me. This includes the full text of the error's stack trace, the error message, and the version of the add-on you're running. This helps notice problems with new releases but leaving it off (the default unless you turn it on) doesn't affect the functionality of the add-on in any way.
-- Once authenticated with Google, your Google credentials are only stored locally on your Home Assistant instance. This isn't your actual username and password, only an opaque token returned from Google used to verify that you previously gave the Add-on permission to access your Google Drive. Your password is never seen by me or the add-on. You can read more about how authentication with Google is accomplished [here](https://github.com/sabeechen/hassio-google-drive-backup/blob/master/hassio-google-drive-backup/AUTHENTICATION.md).
+- Once authenticated with Google, your Google credentials are only stored locally on your Home Assistant instance. This isn't your actual username and password, only an opaque token returned from Google used to verify that you previously gave the Add-on permission to access your Google Drive. Your password is never seen by me or the add-on. You can read more about how authentication with Google is accomplished [here](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/hass_gdrive_backup/AUTHENTICATION.md).
 - The add-on has access to the files in Google Drive it created, which is the 'Home Assistant Backups' folder and any backups it uploads. See the https://www.googleapis.com/auth/drive.file scope in the [Drive REST API v3 Documentation](https://developers.google.com/drive/api/v3/about-auth) for details, this is the only scope the add-on requests for your account.
 - Google stores a history of information about the number of requests, number of errors, and latency of requests made by this Add-on and makes a graph of that visible to me. This is needed because Google only gives me a certain quota for requests shared between all users of the add-on, so I need to be aware if someone is abusing it.
 - The Add-on is distributed as a Docker container hosted on Docker Hub, which is how almost all add-ons work. Docker keeps track of how many people have requested an image and makes that information publicly visible.
@@ -280,9 +280,9 @@ The logs there keep a pretty short history, so if you ahve a lot of other errors
 
 ## Releasing updates (for maintainers)
 
-HACS tracks updates via GitHub Releases, not just commits to `master` — it compares the latest release tag against the installed version to decide whether to show an update. Releases are created automatically by the [Release workflow](.github/workflows/release.yml): on every push to `master`, it reads `version` from `hassio-google-drive-backup/config.yaml` and, if there's no matching `v<version>` release yet, creates one (with auto-generated notes). So each time a change should be installable as an update:
+HACS tracks updates via GitHub Releases, not just commits to `master` — it compares the latest release tag against the installed version to decide whether to show an update. Releases are created automatically by the [Release workflow](.github/workflows/release.yml): on every push to `master`, it reads `version` from `hass_gdrive_backup/config.yaml` and, if there's no matching `v<version>` release yet, creates one (with auto-generated notes). So each time a change should be installable as an update:
 
-1. Bump `version` in `hassio-google-drive-backup/config.yaml` (semantic versioning, e.g. `0.113.0` → `0.113.1`) and add a matching entry to `hassio-google-drive-backup/CHANGELOG.md`.
+1. Bump `version` in `hass_gdrive_backup/config.yaml` (semantic versioning, e.g. `0.113.0` → `0.113.1`) and add a matching entry to `hass_gdrive_backup/CHANGELOG.md`.
 2. Push to `master`.
 
 Pushes that don't change the version are a no-op for the workflow. It can also be run by hand from the repository's **Actions** tab. If it fails with a permissions error, allow "Read and write permissions" under **Settings → Actions → General → Workflow permissions**.
