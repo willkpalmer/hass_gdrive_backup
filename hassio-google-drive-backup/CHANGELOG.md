@@ -1,3 +1,7 @@
+## v0.113.1 [2026-09-26]
+
+- Added a Release workflow that publishes a GitHub Release (`v<version>`) whenever `master` carries an add-on version that hasn't been released yet.
+
 ## v0.113.0 [2026-09-26]
 
 - Updated the add-on for current Home Assistant OS / Supervisor releases:

@@ -1,5 +1,5 @@
 name: Home Assistant Google Drive Backup
-version: 0.113.0
+version: 0.113.1
 slug: hassio_google_drive_backup
 description: Automatically manage backups between Home Assistant and Google Drive
 arch:
