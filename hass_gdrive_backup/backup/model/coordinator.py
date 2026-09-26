@@ -134,7 +134,17 @@ class Coordinator(Trigger):
         return self._next_sync_offset * randomness_max + non_randomness
 
     def nextBackupTime(self, include_pending=True):
-        return self._buildModel().nextBackup(self._time.now(), include_pending)
+        model = self._buildModel()
+        if not model.source.schedulesOwnBackups():
+            return model.source.externalNextBackup()
+        return model.nextBackup(self._time.now(), include_pending)
+
+    def backupDueBy(self):
+        """The time by which a new backup should exist, for deciding if backups have gone stale."""
+        model = self._buildModel()
+        if not model.source.schedulesOwnBackups():
+            return model.source.externalBackupDueBy()
+        return model.nextBackup(self._time.now(), include_pending=False)
 
     def buildBackupMetrics(self):
         info = {}

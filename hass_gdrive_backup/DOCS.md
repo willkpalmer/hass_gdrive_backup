@@ -76,9 +76,17 @@ send_error_reports: true
 delete_after_upload: true
 ```
 
+### Option: `backup_mode` (default: `auto`)
+
+Decides who schedules new backups.
+
+- `home_assistant`: Home Assistant's own automatic backups (**Settings > System > Backups**) decide when backups are made, what goes in them, how they're encrypted and how many stay on the device. The add-on uploads them to Google Drive as soon as they finish, applies its own Google Drive retention (including generational backups), and warns you if they stop happening. "Backup now" in the add-on asks Home Assistant for a backup with those same settings. `days_between_backups`, `backup_time_of_day` and `max_backups_in_ha` are ignored.
+- `addon`: the add-on makes backups on its own schedule, as configured by the options below.
+- `auto`: `home_assistant` when automatic backups are set up with a schedule in Home Assistant, otherwise `addon`.
+
 ### Option: `max_backups_in_ha` (default: 4)
 
-The number of backups the add-on will allow Home Assistant to store locally before old ones are deleted.
+The number of backups the add-on will allow Home Assistant to store locally before old ones are deleted. Ignored when Home Assistant schedules backups (see `backup_mode`).
 
 ### Option: `max_backups_in_google_drive` (default: 4)
 
@@ -129,6 +137,10 @@ When set, backups are created with a password. You can use a value from your sec
 > ```yaml
 > backup_password: "!secret backup_password"
 > ```
+
+### Option: `use_home_assistant_encryption_key` (default: True)
+
+When `backup_password` isn't set, the backups the add-on makes are encrypted with Home Assistant's backup encryption key, the same key Home Assistant uses for its own backups and that's in your Home Assistant backup emergency kit. Set this to false to make unencrypted backups instead. If you later change the key in Home Assistant, older backups still need the key they were made with.
 
 ### Option: `backup_name` (default: "{type} Backup {year}-{month}-{day} {hr24}:{min}:{sec}")
 

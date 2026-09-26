@@ -642,6 +642,14 @@ function processStatusUpdate(data) {
   $('#next_backup').attr("datetime", data.next_backup_machine);
   $('#next_backup').attr("title", data.next_backup_detail);
 
+  if (data.home_assistant_backups && data.home_assistant_backups.scheduling) {
+    $('#ha_schedule_link').attr("href", getHomeAssistantUrl("config/backup/settings", data.ha_url_base));
+    $('#ha_schedule_retention').text(data.home_assistant_backups.retention);
+    $('#ha_schedule_note').css("display", "flex");
+  } else {
+    $('#ha_schedule_note').hide();
+  }
+
   if (data.sources.GoogleDrive.enabled && data.folder_id && data.folder_id.length > 0 ) {
     $('.open_drive_link').attr("href", "https://drive.google.com/drive/u/0/folders/" + data.folder_id);
     $('.open_drive_menu').show()

@@ -103,6 +103,12 @@ class UiServer(Trigger, Startable):
         for backup in backups:
             status['backups'].append(self.getBackupDetails(backup))
         status['ha_url_base'] = self._ha_source.getHomeAssistantUrl()
+        core = self._ha_source.coreBackups
+        status['home_assistant_backups'] = {
+            'scheduling': core.schedulesBackups,
+            'available': core.available,
+            'retention': core.retentionDescription,
+        }
         status['restore_backup_path'] = "hassio/backups"
         status['ask_error_reports'] = not self.config.isExplicit(
             Setting.SEND_ERROR_REPORTS)

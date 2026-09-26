@@ -5,3 +5,5 @@ from .harequests import HaRequests, EVENT_BACKUP_END, EVENT_BACKUP_START, VERSIO
 from .backupname import BackupName, BACKUP_NAME_KEYS
 from .password import Password
 
+from .hawebsocket import HaWebsocket, HomeAssistantWebsocketError
+from .corebackups import CoreBackups, BACKUP_MODE_AUTO, BACKUP_MODE_HOME_ASSISTANT, BACKUP_MODE_ADDON

@@ -7,9 +7,10 @@ import io
 
 from backup.config import Config, Version
 from backup.time import Time
+from aiohttp import WSMsgType
 from aiohttp.web import (HTTPBadRequest, HTTPNotFound,
                          HTTPUnauthorized, Request, Response, get,
-                         json_response, post, delete, FileResponse)
+                         json_response, post, delete, FileResponse, WebSocketResponse)
 from injector import inject, singleton
 from .base_server import BaseServer
 from .ports import Ports
@@ -77,6 +78,30 @@ class SimulatedSupervisor(BaseServer):
             ]
         }
 
+        # Simulates Home Assistant Core's backup websocket API (proxied by the supervisor at /core/websocket)
+        self._core_websocket_available = True
+        self._core_event_subscribers = []
+        self._core_websockets = set()
+        self._core_backup_config = {
+            "agents": {},
+            "automatic_backups_configured": False,
+            "create_backup": {
+                "agent_ids": ["hassio.local"],
+                "include_addons": None,
+                "include_all_addons": True,
+                "include_database": True,
+                "include_folders": None,
+                "name": None,
+                "password": None,
+            },
+            "last_attempted_automatic_backup": None,
+            "last_completed_automatic_backup": None,
+            "next_automatic_backup": None,
+            "next_automatic_backup_additional": False,
+            "retention": {"copies": 3, "days": None},
+            "schedule": {"days": [], "recurrence": "never", "time": None},
+        }
+
         self.installAddon(self._addon_slug, "Home Assistant Google drive Backup")
         self.installAddon("42", "The answer")
         self.installAddon("sgadg", "sdgsagsdgsggsd")
@@ -108,6 +133,7 @@ class SimulatedSupervisor(BaseServer):
             get('/addons/{slug}/icon', self._logoAddon),
 
             get('/core/info', self._coreInfo),
+            get('/core/websocket', self._coreWebsocket),
             get('/supervisor/info', self._supervisorInfo),
             get('/supervisor/logs', self._supervisorLogs),
             get('/core/logs', self._coreLogs),
@@ -301,9 +327,83 @@ class SimulatedSupervisor(BaseServer):
                     included_addons=input_json.get('addons', None),
                     password=password)
                 backup_info = parseBackupInfo(data)
+                backup_info['extra'] = input_json.get('extra')
                 self._backups[slug] = backup_info
                 self._backup_data[slug] = bytearray(data.getbuffer())
                 return slug
+
+    def setCoreWebsocketAvailable(self, available: bool):
+        self._core_websocket_available = available
+
+    def setCoreBackupConfig(self, **changes):
+        """Changes the simulated Home Assistant backup config, e.g. schedule={"recurrence": "daily"}"""
+        for key, value in changes.items():
+            if isinstance(value, dict) and isinstance(self._core_backup_config.get(key), dict):
+                self._core_backup_config[key].update(value)
+            else:
+                self._core_backup_config[key] = value
+
+    async def createAutomaticBackup(self, date=None):
+        """Creates a backup the way Home Assistant's automatic backups do."""
+        slug = await self._internalNewBackup(None, {
+            "name": self._core_backup_config["create_backup"]["name"] or "Automatic backup",
+            "password": self._core_backup_config["create_backup"]["password"],
+            "extra": {"instance_id": "simulated", "with_automatic_settings": True},
+        }, date=date, verify_header=False)
+        self._core_backup_config["last_completed_automatic_backup"] = (date or self._time.now()).isoformat()
+        return slug
+
+    async def _coreWebsocket(self, request: Request):
+        if not self._core_websocket_available:
+            raise HTTPNotFound()
+        ws = WebSocketResponse()
+        await ws.prepare(request)
+        self._core_websockets.add(ws)
+        await ws.send_json({"type": "auth_required", "ha_version": "2026.10.0"})
+        auth = await ws.receive_json()
+        if auth.get("type") != "auth" or auth.get("access_token") != self._auth_token:
+            await ws.send_json({"type": "auth_invalid", "message": "Invalid access token"})
+            await ws.close()
+            return ws
+        await ws.send_json({"type": "auth_ok", "ha_version": "2026.10.0"})
+        try:
+            async for message in ws:
+                if message.type != WSMsgType.TEXT:
+                    continue
+                await self._handleCoreCommand(ws, message.json())
+        finally:
+            self._core_event_subscribers = [s for s in self._core_event_subscribers if s[0] is not ws]
+            self._core_websockets.discard(ws)
+        return ws
+
+    async def closeWebsockets(self):
+        for ws in list(self._core_websockets):
+            await ws.close()
+
+    async def _handleCoreCommand(self, ws: WebSocketResponse, command):
+        command_type = command.get("type")
+        if command_type == "backup/config/info":
+            await self._coreResult(ws, command, {"config": dict(self._core_backup_config)})
+        elif command_type == "backup/subscribe_events":
+            self._core_event_subscribers.append((ws, command["id"]))
+            await ws.send_json({"id": command["id"], "type": "event", "event": {"manager_state": "idle"}})
+            await self._coreResult(ws, command, None)
+        elif command_type == "backup/generate_with_automatic_settings":
+            await self._coreEvent({"manager_state": "create_backup", "stage": None, "state": "in_progress", "reason": None})
+            await self.createAutomaticBackup()
+            await self._coreResult(ws, command, {"backup_job_id": self.generateId(8)})
+            await self._coreEvent({"manager_state": "create_backup", "stage": None, "state": "completed", "reason": None})
+        else:
+            await ws.send_json({"id": command.get("id"), "type": "result", "success": False,
+                                "error": {"code": "unknown_command", "message": "Unknown command."}})
+
+    async def _coreResult(self, ws, command, result):
+        await ws.send_json({"id": command["id"], "type": "result", "success": True, "result": result})
+
+    async def _coreEvent(self, event):
+        for ws, subscription_id in list(self._core_event_subscribers):
+            if not ws.closed:
+                await ws.send_json({"id": subscription_id, "type": "event", "event": event})
 
     async def createBackup(self, input_json, date=None):
         return await self._internalNewBackup(None, input_json, date=date, verify_header=False)

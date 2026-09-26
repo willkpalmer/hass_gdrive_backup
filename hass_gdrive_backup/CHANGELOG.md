@@ -1,3 +1,9 @@
+## v0.4.0 [2026-09-26]
+
+- The add-on now works with Home Assistant's own backup system (Settings > System > Backups). With the new `backup_mode` option (default `auto`), when you've set up automatic backups in Home Assistant, Home Assistant decides when backups are made, what goes in them, their encryption and how many stay on the device. The add-on uploads them to Google Drive as soon as they finish, keeps its own Google Drive retention (including generational backups), and still warns you if they stop happening. Set `backup_mode: addon` to keep the add-on's own schedule.
+- "Backup now" asks Home Assistant for a backup with its automatic backup settings when Home Assistant is scheduling.
+- Backups the add-on makes itself are now encrypted with Home Assistant's backup encryption key when no backup password is set (`use_home_assistant_encryption_key`).
+
 ## v0.3.0 [2026-09-26]
 
 - Added the `auth_server_url` option for using your own Google Drive auth server. See [AUTH_SERVER.md](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/AUTH_SERVER.md) for setting one up on Google Cloud Run or any Docker host.

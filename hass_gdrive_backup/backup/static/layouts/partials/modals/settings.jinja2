@@ -117,6 +117,25 @@
         </div>
         <div class="row">
           <div class="input-field col m6 s12">
+            <select id="backup_mode" name="backup_mode">
+              <option value="auto">Automatic</option>
+              <option value="home_assistant">Home Assistant schedules backups</option>
+              <option value="addon">This add-on schedules backups</option>
+            </select>
+            <label>Who Schedules Backups</label>
+          </div>
+          <div class="input-field col m6 s12">
+            <span class="helper-text">
+              "Home Assistant" uses the automatic backups you set up in Home Assistant (Settings &gt; System &gt;
+              Backups): Home Assistant decides when to make backups, what goes in them, their encryption and how many
+              it keeps, and this add-on uploads them to Google Drive and manages what's kept there. "Days between
+              backups", "Backup time of day" and "Backups in Home Assistant" are then ignored. "This add-on" makes
+              backups on its own schedule. "Automatic" uses Home Assistant's schedule when you've set one up there.
+            </span>
+          </div>
+        </div>
+        <div class="row">
+          <div class="input-field col m6 s12">
             <i class="material-icons prefix">date_range</i>
             <input type="number" id="days_between_backups" name="days_between_backups" min="0" class="validate" />
             <label for="days_between_backups">Days between backups</label>
@@ -142,6 +161,16 @@
               required by Home Assistant when restoring the backup. Leave blank to require no
               password. You can specify a password from your secrets.yaml by using the syntax "!secret
               your_secret_key".</span>
+          </div>
+          <div class="col m6 s12">
+            <label>
+              <input type="checkbox" name="use_home_assistant_encryption_key" id="use_home_assistant_encryption_key"
+                class="filled-in checkbox-ha" />
+              <span>Use Home Assistant's Encryption Key</span>
+              <br />
+              <span class="helper-text">When no password is set above, encrypt the backups this add-on makes with
+                the same key as Home Assistant's own backups, from your Home Assistant backup emergency kit.</span>
+            </label>
           </div>
           <div class="input-field col m6 s12 default-hidden" id="password_renter_block">
             <i class="material-icons prefix">vpn_key</i>

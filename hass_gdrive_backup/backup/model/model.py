@@ -77,6 +77,18 @@ class BackupSource(Trigger, Generic[T]):
     def maxCount(self) -> int:
         return 0
 
+    def schedulesOwnBackups(self) -> bool:
+        """False when something else (Home Assistant) decides when this source makes new backups."""
+        return True
+
+    def externalNextBackup(self) -> Optional[datetime]:
+        """When the external scheduler plans its next backup, if schedulesOwnBackups() is False."""
+        return None
+
+    def externalBackupDueBy(self) -> Optional[datetime]:
+        """When a new backup should exist by, if the external scheduler is working, if schedulesOwnBackups() is False."""
+        return None
+
     def postSync(self):
         return
 
@@ -145,7 +157,9 @@ class Model():
 
     def _nextBackup(self, now: datetime, last_backup: Optional[datetime]) -> Optional[datetime]:
         timeofDay = self.getTimeOfDay()
-        if self.config.get(Setting.DAYS_BETWEEN_BACKUPS) <= 0:
+        if not self.source.schedulesOwnBackups():
+            next = None
+        elif self.config.get(Setting.DAYS_BETWEEN_BACKUPS) <= 0:
             next = None
         elif self.dest.needsConfiguration():
             next = None

@@ -33,6 +33,8 @@ class Setting(Enum):
     BACKUP_PASSWORD = "backup_password"
     BACKUP_STORAGE = "backup_storage"
     CALL_BACKUP_SNAPSHOT = "call_backup_snapshot"
+    BACKUP_MODE = "backup_mode"
+    USE_HOME_ASSISTANT_ENCRYPTION_KEY = "use_home_assistant_encryption_key"
 
     # Basic backup settings
     WARN_FOR_LOW_SPACE = "warn_for_low_space"
@@ -198,6 +200,8 @@ _DEFAULTS = {
     Setting.DELETE_AFTER_UPLOAD: False,
     Setting.DEPRECTAED_DELETE_BEFORE_NEW_BACKUP: False,
     Setting.CALL_BACKUP_SNAPSHOT: False,
+    Setting.BACKUP_MODE: "auto",
+    Setting.USE_HOME_ASSISTANT_ENCRYPTION_KEY: True,
 
     # Generational backup settings
     Setting.GENERATIONAL_DAYS: 0,
@@ -340,6 +344,8 @@ _CONFIG = {
     Setting.DELETE_AFTER_UPLOAD: "bool?",
     Setting.DEPRECTAED_DELETE_BEFORE_NEW_BACKUP: "bool?",
     Setting.CALL_BACKUP_SNAPSHOT: "bool?",
+    Setting.BACKUP_MODE: "list(auto|home_assistant|addon)?",
+    Setting.USE_HOME_ASSISTANT_ENCRYPTION_KEY: "bool?",
 
     # Generational backup settings
     Setting.GENERATIONAL_DAYS: "int(0,)?",

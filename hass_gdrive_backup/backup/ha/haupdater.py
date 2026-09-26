@@ -111,7 +111,7 @@ class HaUpdater(Worker):
         if self._info._last_error:
             return self._time.now() > self._info._last_success + timedelta(seconds=self._config.get(Setting.BACKUP_STALE_SECONDS))
         else:
-            next_backup = self._coordinator.nextBackupTime(include_pending=False)
+            next_backup = self._coordinator.backupDueBy()
             if not next_backup:
                 # no backups are configured
                 return False

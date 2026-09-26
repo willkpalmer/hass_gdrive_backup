@@ -56,6 +56,15 @@ class HABackup(AbstractBackup):
             pending=False)
         self._data_cache = data_cache
         self._config = config
+        self._adopted = False
+
+    def isHomeAssistantAutomatic(self) -> bool:
+        """True if Home Assistant's own automatic backup system (Settings > System > Backups) made this backup."""
+        return (self.details().get("extra") or {}).get("with_automatic_settings") is True
+
+    def setAdopted(self, adopted: bool) -> None:
+        """Adopted backups are managed like ones the add-on made, because Home Assistant is scheduling backups for it."""
+        self._adopted = adopted
 
     def madeByTheAddon(self):
         return self._data_cache.backup(self.slug()).get(KEY_I_MADE_THIS, False)
@@ -71,7 +80,7 @@ class HABackup(AbstractBackup):
         override = self._data_cache.backup(self.slug()).get(KEY_IGNORE, None)
         if override is not None:
             return override
-        if self.madeByTheAddon():
+        if self.madeByTheAddon() or self._adopted:
             return False
         if self._config.get(Setting.IGNORE_OTHER_BACKUPS):
             return True

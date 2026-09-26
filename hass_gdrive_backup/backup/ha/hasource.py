@@ -15,6 +15,7 @@ from ..model import BackupSource, AbstractBackup, HABackup, Backup
 from ..exceptions import (LogicError, BackupInProgress, UnknownNetworkStorageError, InactiveNetworkStorageError,
                           UploadFailed, ensureKey)
 from .harequests import HaRequests
+from .corebackups import CoreBackups
 from .password import Password
 from .backupname import BackupName
 from ..time import Time
@@ -22,6 +23,11 @@ from ..logger import getLogger, StandardLogger
 from backup.const import FOLDERS, NECESSARY_OLD_BACKUP_PLURAL_NAME
 
 logger: StandardLogger = getLogger(__name__)
+
+# Marks a backup request that Home Assistant's own backup system should carry out.
+KEY_VIA_HOME_ASSISTANT = "via_home_assistant"
+CORE_BACKUP_POLL_SECONDS = 1
+
 
 class PendingBackup(AbstractBackup):
     def __init__(self, backupType, protected, options: CreateOptions, request_info, config, time):
@@ -131,8 +137,11 @@ class HaSource(BackupSource[HABackup], Startable):
     Stores logic for interacting with the supervisor add-on API
     """
     @inject
-    def __init__(self, config: Config, time: Time, ha: HaRequests, info: GlobalInfo, estimator: Estimator, data_cache: DataCache):
+    def __init__(self, config: Config, time: Time, ha: HaRequests, info: GlobalInfo, estimator: Estimator, data_cache: DataCache, core: CoreBackups):
         super().__init__()
+        self._core = core
+        # Upload Home Assistant's backups as soon as it finishes making them.
+        core.onBackupCompleted(self.trigger)
         self.config: Config = config
         self._data_cache = data_cache
         self.backup_thread: Optional[Thread] = None
@@ -180,7 +189,23 @@ class HaSource(BackupSource[HABackup], Startable):
         return "Home Assistant"
 
     def maxCount(self) -> None:
+        if self._core.schedulesBackups:
+            # Home Assistant's own retention settings decide how many backups it keeps.
+            return 0
         return self.config.get(Setting.MAX_BACKUPS_IN_HA)
+
+    def schedulesOwnBackups(self) -> bool:
+        return not self._core.schedulesBackups
+
+    def externalNextBackup(self):
+        return self._core.nextBackup()
+
+    def externalBackupDueBy(self):
+        return self._core.backupDueBy()
+
+    @property
+    def coreBackups(self) -> CoreBackups:
+        return self._core
 
     def enabled(self) -> bool:
         return True
@@ -196,9 +221,15 @@ class HaSource(BackupSource[HABackup], Startable):
         if options.name_template is None or len(options.name_template) == 0:
             options.name_template = self.config.get(Setting.BACKUP_NAME)
 
-        # Build the backup request json, get type, etc
-        request, type_name, protected = self._buildBackupInfo(
-            options)
+        await self._core.refresh()
+        if self._core.schedulesBackups:
+            # Let Home Assistant make the backup with its own settings (contents, encryption and name).
+            request = {'name': "Home Assistant automatic backup", KEY_VIA_HOME_ASSISTANT: True}
+            type_name = "Full"
+            protected = self._core.encryptionKey is not None
+        else:
+            # Build the backup request json, get type, etc
+            request, type_name, protected = self._buildBackupInfo(options)
 
         async with self._pending_backup_lock:
             # Check if a backup is already in progress
@@ -269,6 +300,8 @@ class HaSource(BackupSource[HABackup], Startable):
         else:
             # Always ensure the supervisor version is fresh before makign any other requests
             self.super_info = await self.harequests.supervisorInfo()
+        await self._core.refresh()
+        adopt_automatic = self._core.schedulesBackups
         slugs = set()
         retained = []
         backups: Dict[str, AbstractBackup] = {}
@@ -285,6 +318,7 @@ class HaSource(BackupSource[HABackup], Startable):
             slug = backup['slug']
             slugs.add(slug)
             item = await self.harequests.backup(slug)
+            item.setAdopted(adopt_automatic and item.isHomeAssistantAutomatic())
             if slug in self.pending_options:
                 item.setOptions(self.pending_options[slug])
             backups[slug] = item
@@ -498,9 +532,12 @@ class HaSource(BackupSource[HABackup], Startable):
 
     async def _requestAsync(self, pending: PendingBackup, start=[]) -> None:
         try:
-            result = await asyncio.wait_for(self.harequests.createBackup(pending._request_info), timeout=self.config.get(Setting.PENDING_BACKUP_TIMEOUT_SECONDS))
-            slug = ensureKey(
-                "slug", result, "supervisor's create backup response")
+            if pending._request_info.get(KEY_VIA_HOME_ASSISTANT):
+                slug = await asyncio.wait_for(self._requestCoreBackup(), timeout=self.config.get(Setting.PENDING_BACKUP_TIMEOUT_SECONDS))
+            else:
+                result = await asyncio.wait_for(self.harequests.createBackup(pending._request_info), timeout=self.config.get(Setting.PENDING_BACKUP_TIMEOUT_SECONDS))
+                slug = ensureKey(
+                    "slug", result, "supervisor's create backup response")
             pending.complete(slug)
             self.config.setRetained(
                 slug, pending.getOptions().retain_sources.get(self.name(), False))
@@ -520,6 +557,20 @@ class HaSource(BackupSource[HABackup], Startable):
                 logger.printException(e)
         finally:
             self.trigger()
+
+    async def _backupSlugs(self):
+        query = await self.harequests.backups()
+        return {backup['slug'] for backup in query.get('backups', query.get(NECESSARY_OLD_BACKUP_PLURAL_NAME, []))}
+
+    async def _requestCoreBackup(self) -> str:
+        """Has Home Assistant make a backup with its automatic backup settings, and returns the new backup's slug."""
+        known = await self._backupSlugs()
+        await self._core.createBackup()
+        while True:
+            for slug in (await self._backupSlugs()) - known:
+                if (await self.harequests.backup(slug)).isHomeAssistantAutomatic():
+                    return slug
+            await asyncio.sleep(CORE_BACKUP_POLL_SECONDS)
 
     def _buildBackupInfo(self, options: CreateOptions):
         addons: List[str] = []
@@ -546,8 +597,11 @@ class HaSource(BackupSource[HABackup], Startable):
         if type_name == "Full":
             del request_info['addons']
             del request_info['folders']
-        protected = False
         password = Password(self.config).resolve()
+        if not password and self.config.get(Setting.USE_HOME_ASSISTANT_ENCRYPTION_KEY):
+            # Encrypt with the same key as Home Assistant's own backups, which the user already has saved.
+            password = self._core.encryptionKey
+        protected = password is not None
         if password:
             request_info['password'] = password
         name = BackupName().resolve(type_name, options.name_template,

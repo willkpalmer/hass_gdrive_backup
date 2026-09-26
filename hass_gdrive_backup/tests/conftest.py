@@ -17,6 +17,7 @@ from backup.model import Coordinator
 from dev.simulationserver import SimulationServer
 from backup.drive import DriveRequests, DriveSource, FolderFinder, AuthCodeQuery
 from backup.util import GlobalInfo, Estimator, Resolver, DataCache
+from backup.ha import HaWebsocket
 from backup.ha import HaRequests, HaSource, HaUpdater
 from backup.logger import reset
 from backup.model import DummyBackup, DestinationPrecache, Model
@@ -179,6 +180,7 @@ async def injector(cleandir, ports, generate_config):
 
     injector = Injector([BaseModule(), TestModule(generate_config, ports)])
     yield injector
+    await injector.get(HaWebsocket).stop()
     await injector.get(Resolver).close()
 
 
