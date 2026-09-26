@@ -1,5 +1,5 @@
 from .backups import AbstractBackup
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from ..const import SOURCE_GOOGLE_DRIVE, NECESSARY_PROP_KEY_SLUG, NECESSARY_PROP_KEY_DATE, NECESSARY_PROP_KEY_NAME, PROP_NOTE
 from ..exceptions import ensureKey
@@ -13,6 +13,9 @@ PROP_TYPE = "type"
 PROP_VERSION = "version"
 PROP_PROTECTED = "protected"
 PROP_RETAINED = "retained"
+# Set to VERIFIED_MD5 once the uploaded file's checksum has been confirmed to match the original backup.
+PROP_VERIFIED = "verified"
+VERIFIED_MD5 = "md5"
 DRIVE_KEY_TEXT = "Google Drive's backup metadata"
 
 
@@ -49,6 +52,15 @@ class DriveBackup(AbstractBackup):
 
     def id(self) -> str:
         return self._id
+
+    def md5(self) -> Optional[str]:
+        return self._drive_data.get("md5Checksum")
+
+    def verified(self) -> bool:
+        return self._drive_data.get("appProperties", {}).get(PROP_VERIFIED) == VERIFIED_MD5
+
+    def setVerified(self) -> None:
+        self._drive_data.setdefault("appProperties", {})[PROP_VERIFIED] = VERIFIED_MD5
 
     def canDeleteDirectly(self) -> str:
         caps = self._drive_data.get("capabilities", {})

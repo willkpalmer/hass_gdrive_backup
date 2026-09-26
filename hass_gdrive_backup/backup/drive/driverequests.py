@@ -1,3 +1,4 @@
+import hashlib
 import io
 import math
 import re
@@ -30,7 +31,7 @@ FOLDER_NAME = 'Home Assistant Backups'
 DRIVE_VERSION = "v3"
 DRIVE_SERVICE = "drive"
 
-SELECT_FIELDS = "id,name,appProperties,size,trashed,mimeType,modifiedTime,capabilities,parents,driveId"
+SELECT_FIELDS = "id,name,appProperties,size,trashed,mimeType,modifiedTime,capabilities,parents,driveId,md5Checksum"
 THUMBNAIL_MIME_TYPE = "image/png"
 QUERY_FIELDS = "nextPageToken,files(" + SELECT_FIELDS + ")"
 CREATE_FIELDS = SELECT_FIELDS
@@ -215,7 +216,7 @@ class DriveRequests():
         async with await self.retryRequest("GET", URL_ABOUT + "?" + urlencode(q)) as resp:
             return await resp.json()
 
-    async def create(self, stream, metadata, mime_type):
+    async def create(self, stream, metadata, mime_type, hasher: Optional['UploadHasher'] = None):
         # Upload logic is complicated. See https://developers.google.com/drive/api/v3/manage-uploads#resumable
         total_size = stream.size()
         location = None
@@ -304,6 +305,8 @@ class DriveRequests():
                     current_chunk_size = request
             data = await stream.read(current_chunk_size * BASE_CHUNK_SIZE)
             chunk_size = len(data.getbuffer())
+            if hasher is not None:
+                hasher.update(start, data.getbuffer())
             if chunk_size == 0:
                 raise LogicError(
                     "Backup file stream ended prematurely while uploading to Google Drive")
@@ -397,3 +400,30 @@ class DriveRequests():
                 await self.time.sleepAsync(backoff.peek())
             except ServerTimeoutError:
                 raise GoogleTimeoutError()
+
+
+class UploadHasher():
+    """
+    Computes the MD5 of the bytes sent in an upload, following the resumable upload as it seeks, so it
+    can be compared with the checksum Google Drive computes for the finished file.
+    """
+
+    def __init__(self):
+        self._md5 = hashlib.md5()
+        self._position = 0
+        self._complete = True
+
+    def update(self, start: int, data) -> None:
+        if start > self._position:
+            # The upload resumed past bytes this upload never saw (from an earlier attempt), so the
+            # whole file can't be hashed here.
+            self._complete = False
+            return
+        skip = self._position - start
+        if skip < len(data):
+            self._md5.update(data[skip:])
+            self._position = start + len(data)
+
+    def hexdigest(self) -> Optional[str]:
+        """The upload's MD5, or None if some of its bytes were sent by an earlier attempt."""
+        return self._md5.hexdigest() if self._complete else None

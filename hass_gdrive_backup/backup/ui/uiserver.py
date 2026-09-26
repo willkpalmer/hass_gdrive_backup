@@ -201,6 +201,7 @@ class UiServer(Trigger, Startable):
                 'delete_next': backup.getPurges().get(source_key) or False,
                 'slug': backup.slug(),
                 'ignored': source.ignore(),
+                'verified': source.verified(),
             })
 
         data = {

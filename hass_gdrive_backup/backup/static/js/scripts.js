@@ -544,7 +544,11 @@ function populateBackupDiv(backup_div, backups, icon) {
 
       delete_next = [];
       retained = false;
+      verified = false;
       for (let source of backup.sources){
+        if (source.verified) {
+          verified = true;
+        }
         if (source.delete_next) {
           delete_next.push(source);
         }
@@ -566,6 +570,12 @@ function populateBackupDiv(backup_div, backups, icon) {
         $(".icon-retain", template).show();
       } else {
         $(".icon-retain", template).hide();
+      }
+
+      if (verified) {
+        $(".icon-verified", template).show();
+      } else {
+        $(".icon-verified", template).hide();
       }
 
       tip = "Help unavailable";

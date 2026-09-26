@@ -107,6 +107,10 @@ class AbstractBackup():
     def madeByTheAddon(self):
         return True
 
+    def verified(self) -> Optional[bool]:
+        """Whether this copy was checked against the original after it was stored, or None if that doesn't apply."""
+        return None
+
     def ignore(self):
         return self._ignore
 

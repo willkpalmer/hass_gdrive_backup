@@ -1,3 +1,4 @@
+import hashlib
 import re
 
 from yarl import URL
@@ -37,6 +38,8 @@ class SimulatedGoogle(BaseServer):
     def __init__(self, config: Config, time: Time, ports: Ports):
         self._time = time
         self.config = config
+        # When true, uploaded files report a checksum that doesn't match their contents
+        self.corrupt_uploads = False
 
         # auth state
         self._custom_drive_client_id = self.generateId(5)
@@ -511,6 +514,9 @@ class SimulatedGoogle(BaseServer):
         if end == total - 1:
             # upload is complete, so create the item
             completed = self.formatItem(self._upload_info['item'], self._upload_info['id'])
+            completed['md5Checksum'] = hashlib.md5(bytes(completed['bytes'])).hexdigest()
+            if self.corrupt_uploads:
+                completed['md5Checksum'] = "0" * 32
             self.items[completed['id']] = completed
             return json_response({"id": completed['id']})
         else:

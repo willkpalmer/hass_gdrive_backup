@@ -670,6 +670,23 @@
   </ul>
   {% endcall %}
 
+  {% set upload_verification_actions %}
+  <a class="btn-flat" href="#" onclick="sync('upload_verification_failed')"><i class="material-icons">refresh</i>try syncing
+    again</a>
+  {% endset %}
+  {% call macros.errorMessage("An Upload Didn't Match Its Backup", "upload_verification_failed", "error",
+  upload_verification_actions) %}
+  <p>
+    After uploading a backup, the add-on checks that the file Google Drive stored has the same checksum as the backup
+    it sent. This time they didn't match, so the file in Google Drive was deleted rather than kept as a backup you
+    might not be able to restore. The upload will be retried on the next sync.
+  </p>
+  <p>
+    If this keeps happening, something between Home Assistant and Google Drive may be altering data (such as a
+    failing SD card or disk, or a proxy that modifies traffic). The add-on's logs show both checksums.
+  </p>
+  {% endcall %}
+
   {% set supervisor_permission_actions %}
   <a class="btn-flat" href="#" onclick="sync('supervisor_connection')"><i class="material-icons">refresh</i>try syncing
     again</a>

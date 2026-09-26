@@ -1,3 +1,7 @@
+## v0.5.0 [2026-09-26]
+
+- Uploads to Google Drive are now verified: the add-on checksums each backup as it uploads it and compares that with the checksum Google Drive reports. Verified backups get a new icon in the web UI. If they don't match, the copy in Google Drive is deleted and the upload is retried, instead of keeping a backup that might not restore.
+
 ## v0.4.0 [2026-09-26]
 
 - The add-on now works with Home Assistant's own backup system (Settings > System > Backups). With the new `backup_mode` option (default `auto`), when you've set up automatic backups in Home Assistant, Home Assistant decides when backups are made, what goes in them, their encryption and how many stay on the device. The add-on uploads them to Google Drive as soon as they finish, keeps its own Google Drive retention (including generational backups), and still warns you if they stop happening. Set `backup_mode: addon` to keep the add-on's own schedule.

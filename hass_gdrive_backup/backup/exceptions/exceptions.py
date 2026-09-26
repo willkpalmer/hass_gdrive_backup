@@ -9,7 +9,7 @@ from ..const import (DRIVE_FOLDER_URL_FORMAT, ERROR_BACKUP_FOLDER_INACCESSIBLE,
                      ERROR_HA_DELETE_ERROR, ERROR_INVALID_CONFIG, ERROR_LOGIC,
                      ERROR_LOW_SPACE, ERROR_MULTIPLE_DELETES, ERROR_NO_BACKUP,
                      ERROR_NOT_UPLOADABLE, ERROR_PLEASE_WAIT, ERROR_PROTOCOL,
-                     ERROR_BACKUP_IN_PROGRESS, ERROR_UPLOAD_FAILED, LOG_IN_TO_DRIVE,
+                     ERROR_BACKUP_IN_PROGRESS, ERROR_UPLOAD_FAILED, ERROR_UPLOAD_VERIFICATION, LOG_IN_TO_DRIVE,
                      SUPERVISOR_PERMISSION, ERROR_GOOGLE_UNEXPECTED, ERROR_SUPERVISOR_TIMEOUT, ERROR_SUPERVISOR_UNEXPECTED, ERROR_SUPERVISOR_FILE_SYSTEM,
                      UNKONWN_NETWORK_STORAGE, INACTIVE_NETWORK_STORAGE)
 
@@ -106,6 +106,18 @@ class UploadFailed(KnownError):
 
     def code(self):
         return ERROR_UPLOAD_FAILED
+
+
+class UploadVerificationFailed(KnownError):
+    def __init__(self, backup_name: str = "a backup"):
+        super().__init__(backup_name)
+        self.backup_name = backup_name
+
+    def message(self):
+        return "The copy of '{0}' in Google Drive didn't match the backup it was uploaded from, so it was deleted and the upload will be retried.".format(self.backup_name)
+
+    def code(self):
+        return ERROR_UPLOAD_VERIFICATION
 
 
 class GoogleCredentialsExpired(KnownError):

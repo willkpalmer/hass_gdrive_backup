@@ -15,10 +15,12 @@ from ..exceptions import (BackupFolderInaccessible,
                           ExistingBackupFolderError,
                           GoogleDrivePermissionDenied, 
                           LogicError,
-                          DriveQuotaExceeded)
+                          DriveQuotaExceeded,
+                          UploadVerificationFailed)
 from ..model.backups import (PROP_NOTE, PROP_PROTECTED, PROP_RETAINED, PROP_TYPE, PROP_VERSION)
 from ..time import Time
-from .driverequests import DriveRequests
+from .driverequests import DriveRequests, UploadHasher
+from ..model.drivebackup import PROP_VERIFIED, VERIFIED_MD5
 from .folderfinder import FolderFinder
 from .thumbnail import THUMBNAIL_IMAGE
 from ..model import BackupDestination, DriveBackup, Backup
@@ -160,6 +162,24 @@ class DriveSource(BackupDestination):
             await self.drivebackend.update(item.id(), {"trashed": True})
         backup.removeSource(self.name())
 
+    async def _verify(self, backup: Backup, uploaded: DriveBackup, hasher: UploadHasher) -> DriveBackup:
+        """Confirms the file in Google Drive matches the bytes that were uploaded, deleting it if it doesn't."""
+        expected = hasher.hexdigest()
+        actual = uploaded.md5()
+        if expected is None or actual is None:
+            logger.info("Uploaded '{0}' to Google Drive, but it couldn't be verified because {1}".format(
+                backup.name(), "the upload was resumed from an earlier attempt" if expected is None else "Google Drive didn't report a checksum"))
+            return uploaded
+        if expected != actual:
+            logger.error("The copy of '{0}' in Google Drive has checksum {1}, but the backup uploaded has {2}. Deleting it so it gets uploaded again.".format(
+                backup.name(), actual, expected))
+            await self.drivebackend.delete(uploaded.id())
+            raise UploadVerificationFailed(backup.name())
+        await self.drivebackend.update(uploaded.id(), {"appProperties": {PROP_VERIFIED: VERIFIED_MD5}})
+        uploaded.setVerified()
+        logger.info("Uploaded '{0}' to Google Drive and verified its checksum".format(backup.name()))
+        return uploaded
+
     async def save(self, backup: Backup, source: AsyncHttpGetter) -> DriveBackup:
         retain = backup.getOptions() and backup.getOptions().retain_sources.get(self.name(), False)
         parent_id = await self.getFolderId()
@@ -202,13 +222,14 @@ class DriveSource(BackupDestination):
                 self._info.upload(size)
                 backup.overrideStatus("Uploading {0}%", source)
                 backup.setUploadSource(self.title(), source)
-                async for progress in self.drivebackend.create(source, file_metadata, MIME_TYPE):
+                hasher = UploadHasher()
+                async for progress in self.drivebackend.create(source, file_metadata, MIME_TYPE, hasher=hasher):
                     self._uploadedAtLeastOneChunk = True
                     if isinstance(progress, float):
                         logger.debug("Uploading {1} {0:.2f}%".format(
                             progress * 100, backup.name()))
                     else:
-                        return DriveBackup(progress)
+                        return await self._verify(backup, DriveBackup(progress), hasher)
                 raise LogicError(
                     "Google Drive backup upload didn't return a completed item before exiting")
             except ClientResponseError as e:
