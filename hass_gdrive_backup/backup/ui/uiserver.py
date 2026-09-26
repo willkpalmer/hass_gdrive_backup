@@ -15,6 +15,7 @@ from injector import ClassAssistedBuilder, ProviderOf, inject, singleton
 from backup.config import Config, Setting, CreateOptions, BoolValidator, Startable, VERSION, AUTH_SERVER_COMPATIBILITY_VERSION
 from backup.const import SOURCE_GOOGLE_DRIVE, SOURCE_HA, GITHUB_BUG_TEMPLATE
 from backup.model import Coordinator, Backup, AbstractBackup
+from backup.model.coordinator import CANCEL_FOR_SETTINGS
 from backup.exceptions import KnownError, GoogleCredGenerateError, ensureKey
 from backup.util import GlobalInfo, Estimator, DataCache, UpgradeFlags
 from backup.file import File
@@ -595,7 +596,7 @@ class UiServer(Trigger, Startable):
         validated, needUpdate = self.config.validate(update)
         message = await self._updateConfiguration(validated, ensureKey("backup_folder", data, "the configuration update request"), trigger=False)
         try:
-            await self.cancelSync(request)
+            await self._coord.cancel(reason=CANCEL_FOR_SETTINGS)
             await self.startSync(request)
         except:  # noqa: E722
             # eat the error, just cancel optimistically

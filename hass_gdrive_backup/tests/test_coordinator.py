@@ -550,3 +550,49 @@ async def test_precaching(coord: Coordinator, precache: DestinationPrecache, des
     assert dest.query_count == 1
     assert precache.cached(dest.name(), time.now()) is None
     assert global_info._last_error is None
+
+
+@pytest.mark.asyncio
+async def test_user_cancel_isnt_logged_as_error(coord: Coordinator, global_info: GlobalInfo):
+    coord._sync_wait.clear()
+    asyncio.create_task(coord.sync())
+    await coord._sync_start.wait()
+    await coord.cancel()
+    assert isinstance(global_info._last_error, UserCancelledError)
+    assert not any(record is not None and record.levelname == "ERROR" and "cancelled" in record.getMessage()
+                   for record in _recentRecords())
+
+
+@pytest.mark.asyncio
+async def test_cancel_for_settings_isnt_a_failure(coord: Coordinator, global_info: GlobalInfo):
+    from backup.model.coordinator import CANCEL_FOR_SETTINGS
+    global_info.success()
+    coord._sync_wait.clear()
+    asyncio.create_task(coord.sync())
+    await coord._sync_start.wait()
+    await coord.cancel(reason=CANCEL_FOR_SETTINGS)
+    assert global_info._last_error is None
+    assert "apply new settings" in _recentRecords()[-1].getMessage()
+
+
+@pytest.mark.asyncio
+async def test_interrupted_sync_isnt_a_failure(coord: Coordinator, global_info: GlobalInfo):
+    global_info.success()
+    coord._sync_wait.clear()
+    task = asyncio.create_task(coord.sync())
+    await coord._sync_start.wait()
+    # The add-on shutting down cancels the task directly
+    coord._sync_task.cancel()
+    await asyncio.wait([task])
+    assert global_info._last_error is None
+    assert _recentRecords()[-1].levelname == "INFO"
+
+
+def _recentRecords(count=5):
+    from backup.logger import HISTORY
+    records = []
+    for i in range(1, count + 1):
+        record = HISTORY.history[(HISTORY.history_index - i) % len(HISTORY.history)]
+        if record is not None:
+            records.insert(0, record)
+    return records

@@ -20,6 +20,10 @@ from random import Random
 
 logger = getLogger(__name__)
 
+# Why a sync was cancelled
+CANCEL_BY_USER = "user"
+CANCEL_FOR_SETTINGS = "settings"
+
 
 @singleton
 class Coordinator(Trigger):
@@ -40,6 +44,7 @@ class Coordinator(Trigger):
         self._estimator = estimator
         self._busy = False
         self._sync_task: Task = None
+        self._cancel_reason = None
         self._sync_start = Event()
         self._sync_wait = Event()
         self._sync_wait.set()
@@ -95,9 +100,10 @@ class Coordinator(Trigger):
         if task is not None:
             await task
 
-    async def cancel(self):
+    async def cancel(self, reason=CANCEL_BY_USER):
         task = self._sync_task
         if task is not None and not task.done():
+            self._cancel_reason = reason
             task.cancel()
             self.clearCaches()
             await wait([task])
@@ -221,8 +227,21 @@ class Coordinator(Trigger):
 
     def handleError(self, e):
         if isinstance(e, CancelledError):
+            reason = self._cancel_reason
+            self._cancel_reason = None
+            if reason == CANCEL_FOR_SETTINGS:
+                logger.info("Restarting the sync to apply new settings")
+                return
+            if reason != CANCEL_BY_USER:
+                # Nothing in the add-on asked for this, so it's shutting down or restarting.
+                logger.info("The sync stopped before it finished because the add-on is stopping")
+                return
             e = UserCancelledError()
-        if isinstance(e, KnownError):
+        if isinstance(e, UserCancelledError):
+            # Reported in the web UI, but it isn't a problem worth an error in the logs.
+            logger.info(e.message())
+            self._backoff.maxOut()
+        elif isinstance(e, KnownError):
             known: KnownError = e
             logger.error(known.message())
             if known.retrySoon():
