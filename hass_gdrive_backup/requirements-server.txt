@@ -3,14 +3,11 @@ aiohttp
 aiorun
 colorlog
 dnspython
-google-cloud-logging
-google-cloud-firestore
 injector
 python-dateutil
 pyyaml
 watchdog
 aiohttp-jinja2
-firebase-admin
 pytz
 tzlocal
 aioping

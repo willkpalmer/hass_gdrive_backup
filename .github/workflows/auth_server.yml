@@ -1,0 +1,104 @@
+# Builds the Google Drive auth server (hass_gdrive_backup/backup/server) and publishes it to
+# ghcr.io/<owner>/hass-gdrive-backup-auth, so it can run on any container host.
+#
+# If the repository variable GCP_PROJECT_ID is set, it's also deployed to Google Cloud Run.
+# See AUTH_SERVER.md for the one-time Google Cloud setup and the variables/secrets this uses.
+name: Auth Server
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "hass_gdrive_backup/backup/**"
+      - "hass_gdrive_backup/Dockerfile-server"
+      - "hass_gdrive_backup/requirements-server.txt"
+      - ".github/workflows/auth_server.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  IMAGE_NAME: hass-gdrive-backup-auth
+
+jobs:
+  image:
+    name: Build and publish image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image: ${{ steps.image.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Image name
+        id: image
+        run: echo "image=ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/${IMAGE_NAME}" >> "$GITHUB_OUTPUT"
+
+      - uses: docker/setup-buildx-action@v4
+
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v7
+        with:
+          context: hass_gdrive_backup
+          file: hass_gdrive_backup/Dockerfile-server
+          push: true
+          tags: |
+            ${{ steps.image.outputs.image }}:${{ github.sha }}
+            ${{ steps.image.outputs.image }}:latest
+
+  cloud-run:
+    name: Deploy to Cloud Run
+    needs: image
+    if: ${{ vars.GCP_PROJECT_ID != '' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      packages: read
+    env:
+      REGION: ${{ vars.GCP_REGION || 'us-central1' }}
+      SERVICE: ${{ vars.CLOUD_RUN_SERVICE || 'hass-gdrive-backup-auth' }}
+      REGISTRY_IMAGE: ${{ vars.GCP_REGION || 'us-central1' }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/hass-gdrive-backup/auth-server:${{ github.sha }}
+    steps:
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: google-github-actions/auth@v3
+        with:
+          workload_identity_provider: ${{ vars.GCP_WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ vars.GCP_SERVICE_ACCOUNT }}
+
+      - uses: google-github-actions/setup-gcloud@v3
+
+      # Cloud Run only pulls from Artifact Registry, so copy the published image there.
+      - name: Copy image to Artifact Registry
+        run: |
+          gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
+          docker pull "${{ needs.image.outputs.image }}:${{ github.sha }}"
+          docker tag "${{ needs.image.outputs.image }}:${{ github.sha }}" "${REGISTRY_IMAGE}"
+          docker push "${REGISTRY_IMAGE}"
+
+      - uses: google-github-actions/deploy-cloudrun@v3
+        with:
+          service: ${{ env.SERVICE }}
+          region: ${{ env.REGION }}
+          image: ${{ env.REGISTRY_IMAGE }}
+          flags: --allow-unauthenticated --max-instances=2
+          env_vars: |
+            DEFAULT_DRIVE_CLIENT_ID=${{ vars.DRIVE_CLIENT_ID }}
+            AUTHORIZATION_HOST=${{ vars.AUTH_SERVER_URL }}
+            SERVER_CONTACT_EMAIL=${{ vars.SERVER_CONTACT_EMAIL }}
+          secrets: |
+            DEFAULT_DRIVE_CLIENT_SECRET=drive-client-secret:latest
+            DRIVE_PICKER_API_KEY=drive-picker-api-key:latest

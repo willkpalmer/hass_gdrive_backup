@@ -41,6 +41,8 @@ class Server():
     def base_context(self, request: Request):
         return {
             'version': VERSION,
+            'service_url': self.config.get(Setting.AUTHORIZATION_HOST),
+            'contact_email': self.config.get(Setting.SERVER_CONTACT_EMAIL),
             'backgroundColor': request.query.get('bg', self.config.get(Setting.BACKGROUND_COLOR)),
             'accentColor': request.query.get('ac', self.config.get(Setting.ACCENT_COLOR)),
             'bmc_logo_path': "/static/" + VERSION + "/images/bmc.svg"
@@ -164,6 +166,14 @@ class Server():
     async def index(self, request: Request):
         return self.base_context(request)
 
+    @aiohttp_jinja2.template('privacy_policy.jinja2')
+    async def privacy_policy(self, request: Request):
+        return self.base_context(request)
+
+    @aiohttp_jinja2.template('terms_of_service.jinja2')
+    async def terms_of_service(self, request: Request):
+        return self.base_context(request)
+
     async def health(self, request: Request):
         return json_response({
             'status': 'ok',
@@ -177,6 +187,8 @@ class Server():
             static("/drive/static/" + VERSION, path, append_version=True),
             get("/drive/picker", self.picker),
             get("/", self.index),
+            get("/privacy_policy", self.privacy_policy),
+            get("/terms_of_service", self.terms_of_service),
             get("/drive/authorize", self.authorize),
             post("/drive/refresh", self.refresh),
             post("/logerror", self.error),
@@ -185,7 +197,15 @@ class Server():
         aiohttp_jinja2.setup(app, loader=jinja2.FileSystemLoader(path))
         return app
 
+    def missingConfiguration(self):
+        """Settings the server can't work without, which have to come from its environment."""
+        required = [Setting.DEFAULT_DRIVE_CLIENT_ID, Setting.DEFAULT_DRIVE_CLIENT_SECRET, Setting.AUTHORIZATION_HOST]
+        return [setting.value.upper() for setting in required if not self.config.isExplicit(setting) or len(self.config.get(setting)) == 0]
+
     async def start(self):
+        missing = self.missingConfiguration()
+        if len(missing) > 0:
+            raise ValueError("The auth server needs these environment variables to be set: " + ", ".join(missing))
         runner = AppRunner(self.buildApp(Application()))
         await runner.setup()
         site = TCPSite(runner, "0.0.0.0", int(self.config.get(Setting.PORT)))

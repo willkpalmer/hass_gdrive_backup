@@ -1,5 +1,5 @@
 name: Home Assistant Google Drive Backup
-version: 0.2.0
+version: 0.3.0
 slug: hass_gdrive_backup
 description: Automatically manage backups between Home Assistant and Google Drive
 arch:
@@ -94,6 +94,7 @@ schema:
   maximum_upload_chunk_bytes: float(262144,)?
   ha_reporting_interval_seconds: int(1,)?
   upload_limit_bytes_per_second: float(0,)?
+  auth_server_url: url?
 ports:
   1627/tcp: 1627
 ports_description:

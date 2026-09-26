@@ -9,7 +9,7 @@
 
     <p>
       Home Assistant Google Drive Backup ("us", "we", or "our") operates the
-      https://habackup.io/ website (hereinafter referred to as the "Service").
+      {{ service_url }} website (hereinafter referred to as the "Service").
     </p>
 
     <p>
@@ -23,7 +23,7 @@
       you agree to the collection and use of information in accordance with this
       policy. Unless otherwise defined in this Privacy Policy, the terms used in
       this Privacy Policy have the same meanings as in our Terms and Conditions,
-      accessible from https://habackup.io/
+      accessible from {{ service_url }}
     </p>
 
     <h3>Definitions</h3>
@@ -31,7 +31,7 @@
       <li>
         <p><strong>Service</strong></p>
         <p>
-          Service is the https://habackup.io/ website operated by Home Assistant
+          Service is the {{ service_url }} website operated by Home Assistant
           Google Drive Backup
         </p>
       </li>
@@ -233,7 +233,8 @@
       If you have any questions about this Privacy Policy, please contact us:
     </p>
     <ul>
-      <li>By email: stephen@beechens.com</li>
+      {% if contact_email %}<li>By email: {{ contact_email }}</li>{% endif %}
+      <li>By opening an issue on <a href="https://github.com/willkpalmer/hass_gdrive_backup/issues">GitHub</a></li>
     </ul>
   </div>
 </main>

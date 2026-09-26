@@ -1,14 +1,18 @@
-# Use the official lightweight Python image.
-# https://hub.docker.com/_/python
+# The Google Drive auth server (backup/server). See AUTH_SERVER.md in the repository root.
 FROM python:3.13-slim-bookworm
 
-# Copy local code to the container image.
-ENV APP_HOME=/server
+ENV APP_HOME=/server \
+    PORT=8080 \
+    PYTHONUNBUFFERED=1
 WORKDIR $APP_HOME
-COPY requirements-server.txt ./
 
-# Install server python requirements
+COPY requirements-server.txt ./
 RUN pip3 install --no-cache-dir -r requirements-server.txt
 COPY . ./
 
+RUN useradd --system --no-create-home auth
+USER auth
+
+EXPOSE 8080
+HEALTHCHECK --interval=60s --timeout=5s CMD python3 -c "import os, urllib.request; urllib.request.urlopen('http://127.0.0.1:' + os.environ['PORT'] + '/health')"
 ENTRYPOINT ["python3", "-m", "backup.server"]

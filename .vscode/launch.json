@@ -48,16 +48,6 @@
             }
         },
         {
-            "name": "Run Error Analyzer",
-            "type": "python",
-            "request": "launch",
-            "python": "${command:python.interpreterPath}",
-            "module": "hass_gdrive_backup.backup.util.error_analyzer",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}/hass_gdrive_backup"
-            }
-        },
-        {
             "name": "Python: Current File (External Terminal)",
             "type": "python",
             "request": "launch",

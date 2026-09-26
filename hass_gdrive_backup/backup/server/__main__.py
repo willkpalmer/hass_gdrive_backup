@@ -24,4 +24,4 @@ async def main():
 
 if __name__ == '__main__':
     print("Starting")
-    aiorun.run(main())
+    aiorun.run(main(), stop_on_unhandled_errors=True)

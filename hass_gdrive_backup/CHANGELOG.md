@@ -1,3 +1,9 @@
+## v0.3.0 [2026-09-26]
+
+- Added the `auth_server_url` option for using your own Google Drive auth server. See [AUTH_SERVER.md](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/AUTH_SERVER.md) for setting one up on Google Cloud Run or any Docker host.
+- The auth server is now self-hostable: it's configured entirely through environment variables, logs to stdout instead of Google Cloud Logging/Firestore, serves its own privacy policy and terms pages, and refuses to start without its required settings.
+- The privacy policy and terms pages now show the auth server you actually use.
+
 ## v0.2.0 [2026-09-26]
 
 - Removed the "Stop Addons" feature (and its "disable watchdog" option). The Supervisor now tells add-ons when they're being backed up, so stopping them first is no longer needed, and the feature often failed to restart add-ons afterward.

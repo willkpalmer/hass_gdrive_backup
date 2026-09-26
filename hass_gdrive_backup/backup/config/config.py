@@ -22,6 +22,12 @@ KEEP_DEFAULT = {
     Setting.IGNORE_UPGRADE_BACKUPS
 }
 
+# Settings that come from Setting.AUTH_SERVER_URL when it's configured and they aren't set explicitly.
+AUTH_SERVER_SETTINGS = {
+    Setting.AUTHORIZATION_HOST,
+    Setting.TOKEN_SERVER_HOSTS
+}
+
 # these are the options that should trigger a restart of the server
 SERVER_OPTIONS = {
     Setting.USE_SSL,
@@ -33,6 +39,7 @@ SERVER_OPTIONS = {
 
 NON_UI_SETTING = {
     Setting.SUPERVISOR_URL,
+    Setting.AUTH_SERVER_URL,
     Setting.TOKEN_SERVER_HOSTS,
     Setting.DRIVE_AUTHORIZE_URL,
     Setting.DRIVE_DEVICE_CODE_URL,
@@ -181,7 +188,7 @@ class Config():
 
         # add in non-ui settings
         for setting in NON_UI_SETTING:
-            if self.get(setting) != setting.default() and not (setting in new_config or setting.key in new_config) and setting not in self.overrides:
+            if self.isExplicit(setting) and self.get(setting) != setting.default() and not (setting in new_config or setting.key() in new_config) and setting not in self.overrides:
                 final_config[setting] = self.get(setting)
 
         # add defaults
@@ -277,6 +284,9 @@ class Config():
     def get(self, setting: Setting) -> Any:
         if setting in self.overrides:
             return self.overrides[setting]
+        if setting in AUTH_SERVER_SETTINGS and not self.isExplicit(setting) and len(self.get(Setting.AUTH_SERVER_URL)) > 0:
+            # A user-configured auth server handles both authorization and token refresh.
+            return self.get(Setting.AUTH_SERVER_URL).rstrip("/")
         if setting in self.config:
             return self.config[setting]
         if setting.key() in self.config:

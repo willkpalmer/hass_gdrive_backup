@@ -112,7 +112,8 @@ class DriveRequests():
             return True
 
     def isCustomCreds(self):
-        return self.creds is not None and self.creds.id != self.config.get(Setting.DEFAULT_DRIVE_CLIENT_ID)
+        # Creds from the user's own Google app carry their client secret; creds issued through an auth server don't.
+        return self.creds is not None and self.creds.secret is not None
 
     def _getAuthHeaders(self):
         return {

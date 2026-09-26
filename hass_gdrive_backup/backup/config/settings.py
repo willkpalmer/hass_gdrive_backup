@@ -100,6 +100,7 @@ class Setting(Enum):
     DATA_CACHE_FILE_PATH = "data_cache_file_path"
 
     # endpoints
+    AUTH_SERVER_URL = "auth_server_url"
     AUTHORIZATION_HOST = "authorization_host"
     TOKEN_SERVER_HOSTS = "token_server_hosts"
     SUPERVISOR_URL = "supervisor_url"
@@ -122,7 +123,7 @@ class Setting(Enum):
     DOWNLOAD_TIMEOUT_SECONDS = "download_timeout_seconds"
     DEFAULT_CHUNK_SIZE = "default_chunk_size"
     DEBUGGER_PORT = "debugger_port"
-    SERVER_PROJECT_ID = "server_project_id"
+    SERVER_CONTACT_EMAIL = "server_contact_email"
     LOG_LEVEL = "log_level"
     CONSOLE_LOG_LEVEL = "console_log_level"
     BACKUP_STARTUP_DELAY_MINUTES = "backup_startup_delay_minutes"
@@ -247,6 +248,7 @@ _DEFAULTS = {
     Setting.MAXIMUM_UPLOAD_CHUNK_BYTES: 10 * 1024 * 1024,
 
     # Remote endpoints
+    Setting.AUTH_SERVER_URL: "",
     Setting.AUTHORIZATION_HOST: "https://habackup.io",
     Setting.TOKEN_SERVER_HOSTS: "https://token2.habackup.io,https://token1.habackup.io,https://habackup.io",
     Setting.SUPERVISOR_URL: "",
@@ -283,7 +285,7 @@ _DEFAULTS = {
     Setting.DEFAULT_CHUNK_SIZE: 1024 * 1024 * 5,
     Setting.DOWNLOAD_TIMEOUT_SECONDS: 60,
     Setting.DEBUGGER_PORT: None,
-    Setting.SERVER_PROJECT_ID: "",
+    Setting.SERVER_CONTACT_EMAIL: "",
     Setting.LOG_LEVEL: 'DEBUG',
     Setting.CONSOLE_LOG_LEVEL: 'INFO',
     Setting.BACKUP_STARTUP_DELAY_MINUTES: 10,
@@ -387,6 +389,7 @@ _CONFIG = {
     Setting.MAXIMUM_UPLOAD_CHUNK_BYTES: f"float({1024 * 256},)?",
 
     # Remote endpoints
+    Setting.AUTH_SERVER_URL: "url?",
     Setting.AUTHORIZATION_HOST: "url?",
     Setting.TOKEN_SERVER_HOSTS: "str?",
     Setting.SUPERVISOR_URL: "url?",
@@ -423,7 +426,7 @@ _CONFIG = {
     Setting.DEFAULT_CHUNK_SIZE: "int(1,)?",
     Setting.DOWNLOAD_TIMEOUT_SECONDS: "float(0,)?",
     Setting.DEBUGGER_PORT: "int(100,)?",
-    Setting.SERVER_PROJECT_ID: "str?",
+    Setting.SERVER_CONTACT_EMAIL: "str?",
     Setting.LOG_LEVEL: "list(DEBUG|TRACE|INFO|WARN|CRITICAL|WARNING)?",
     Setting.CONSOLE_LOG_LEVEL: "list(DEBUG|TRACE|INFO|WARN|CRITICAL|WARNING)?",
     Setting.BACKUP_STARTUP_DELAY_MINUTES: "float(0,)?",

@@ -15,12 +15,8 @@ injector
 autopep8
 colorlog
 debugpy
-google-cloud-logging
-google-cloud-firestore
 aiohttp-jinja2
 beautifulsoup4
-firebase-admin
-grpcio
 aioping
 pytz
 tzlocal

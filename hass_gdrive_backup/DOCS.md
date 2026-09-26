@@ -162,6 +162,10 @@ When false, the add-on will send a [persistent notification](https://github.com/
 
 ---
 
+### Option: `auth_server_url`
+
+The URL of your own auth server, such as `https://auth.example.com`. The add-on uses it to sign in to Google Drive and to refresh its access. After changing it, sign in to Google Drive again from the add-on's web UI. See [AUTH_SERVER.md](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/AUTH_SERVER.md) for how to run one.
+
 ### UI Server Options
 
 The UI is available through Home Assistant [ingress](https://www.home-assistant.io/blog/2019/04/15/hassio-ingress/).

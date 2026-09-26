@@ -854,11 +854,18 @@ class UiServer(Trigger, Startable):
 
     @aiohttp_jinja2.template('privacy_policy.jinja2')
     async def pp(self, request: Request):
-        return self.base_context()
+        return self._policy_context()
 
     @aiohttp_jinja2.template('terms_of_service.jinja2')
     async def tos(self, request: Request):
-        return self.base_context()
+        return self._policy_context()
+
+    def _policy_context(self):
+        return {
+            **self.base_context(),
+            'service_url': self.config.get(Setting.AUTHORIZATION_HOST),
+            'contact_email': self.config.get(Setting.SERVER_CONTACT_EMAIL),
+        }
 
     async def favicon(self, request: Request):
         return web.FileResponse(abspath(join(__file__, "..", "..", "static", "images", "favicon.png")))
