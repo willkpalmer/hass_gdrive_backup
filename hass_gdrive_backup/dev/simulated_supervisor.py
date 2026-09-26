@@ -80,6 +80,8 @@ class SimulatedSupervisor(BaseServer):
 
         # Simulates Home Assistant Core's backup websocket API (proxied by the supervisor at /core/websocket)
         self._mqtt_service = None
+        self._notify_services = {"mobile_app_phone"}
+        self._notify_calls = []
         self._core_websocket_available = True
         self._core_event_subscribers = []
         self._core_websockets = set()
@@ -119,6 +121,7 @@ class SimulatedSupervisor(BaseServer):
             post('/addons/{slug}/options', self._updateOptions),
             post("/core/api/services/persistent_notification/dismiss", self._dismissNotification),
             post("/core/api/services/persistent_notification/create", self._createNotification),
+            post("/core/api/services/notify/{name}", self._notifyService),
             post("/core/api/events/{name}", self._haEventUpdate),
             post("/core/api/states/{entity}", self._haStateUpdate),
             delete("/core/api/states/{entity}", self._haStateDelete),
@@ -557,6 +560,17 @@ class SimulatedSupervisor(BaseServer):
         await self._verifyHeader(request)
         name = request.match_info.get('name')
         self._events.append((name, await request.json()))
+        return Response()
+
+    def getNotifyServiceCalls(self):
+        return self._notify_calls.copy()
+
+    async def _notifyService(self, request: Request):
+        await self._verifyHeader(request)
+        name = request.match_info.get('name')
+        if name not in self._notify_services:
+            return Response(status=400, text="Service not found")
+        self._notify_calls.append((name, await request.json()))
         return Response()
 
     async def _createNotification(self, request: Request):

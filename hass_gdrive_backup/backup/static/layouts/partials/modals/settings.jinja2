@@ -265,6 +265,15 @@
                 backups.</span>
             </label>
           </div>
+          <div class="input-field col m6 s12">
+            <i class="material-icons prefix">notifications</i>
+            <input type="text" id="notify_service" name="notify_service" pattern="^((notify\.)?[a-z0-9_]+|)$"
+              class="validate" />
+            <label for="notify_service">Notify Service</label>
+            <span class="helper-text">Also send backup problems (and when they're fixed) through this notify service,
+              for example "notify.mobile_app_my_phone" to get them on your phone. Leave blank to only use Home
+              Assistant's notifications.</span>
+          </div>
           <div class="col m6 s12">
             <label>
               <input type="checkbox" name="send_error_reports" id="send_error_reports" class="filled-in checkbox-ha" />

@@ -160,6 +160,10 @@ When set, excludes the comma-separated list of addons by creating a partial back
 
 _Note_: Folders and add-ons must be identified by their "slug" name. It is recommended to use the `Settings` dialog within the add-on web UI to configure partial backups since these names are esoteric and hard to find.
 
+### Option: `notify_service`
+
+A notify service to also send backup problems to, such as `notify.mobile_app_my_phone` to get them on your phone through the Home Assistant companion app. You get one message when backups need attention and another when they're working again. Tapping the notification opens the add-on.
+
 ### Option: `mqtt_discovery` (default: True)
 
 When an MQTT broker is set up in Home Assistant (for example the Mosquitto broker add-on with the MQTT integration), the add-on creates its sensors through MQTT discovery, grouped under a "Google Drive Backup" device:

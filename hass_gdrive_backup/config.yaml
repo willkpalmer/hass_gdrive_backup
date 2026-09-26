@@ -1,5 +1,5 @@
 name: Home Assistant Google Drive Backup
-version: 0.6.0
+version: 0.7.0
 slug: hass_gdrive_backup
 description: Automatically manage backups between Home Assistant and Google Drive
 arch:
@@ -73,6 +73,7 @@ schema:
   backup_mode: list(auto|home_assistant|addon)?
   use_home_assistant_encryption_key: bool?
   mqtt_discovery: bool?
+  notify_service: match(^((notify\.)?[a-z0-9_]+|)$)?
   background_color: match(^(#[0-9ABCDEFabcdef]{6}|)$)?
   accent_color: match(^(#[0-9ABCDEFabcdef]{6}|)$)?
   max_sync_interval_seconds: float(300,)?

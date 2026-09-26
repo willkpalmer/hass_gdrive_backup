@@ -282,6 +282,18 @@ class HaRequests():
         }
         await self._postHaData("services/persistent_notification/create", data)
 
+    async def sendNotifyService(self, service: str, title: str, message: str, url: str = None) -> None:
+        """Sends a message through a notify service, such as "notify.mobile_app_my_phone"."""
+        name = service[len("notify."):] if service.startswith("notify.") else service
+        data: Dict[str, Any] = {
+            "title": title,
+            "message": message,
+        }
+        if url:
+            # Opens the add-on when the notification is tapped in the Home Assistant companion apps.
+            data["data"] = {"url": url, "clickAction": url}
+        await self._postHaData("services/notify/" + name, data)
+
     async def eventBackupStart(self, name, time):
         await self._sendEvent(EVENT_BACKUP_START, {
             'backup_name': name,

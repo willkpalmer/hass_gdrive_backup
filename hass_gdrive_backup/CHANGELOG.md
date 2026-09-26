@@ -1,3 +1,7 @@
+## v0.7.0 [2026-09-26]
+
+- Added the `notify_service` option to also send backup problems through a notify service, such as your phone via the Home Assistant companion app, with a follow-up when backups are working again. It's also in the web UI's settings.
+
 ## v0.6.0 [2026-09-26]
 
 - The add-on's sensors are now real Home Assistant entities when an MQTT broker is set up (for example the Mosquitto add-on). They're created through MQTT discovery under a "Google Drive Backup" device, can be renamed and customized, keep their values across Home Assistant restarts, and include new "Last backup", "Last upload", "Next backup" and backup count sensors. Without a broker (or with `mqtt_discovery: false`) the add-on sets its two sensors through Home Assistant's API as before.

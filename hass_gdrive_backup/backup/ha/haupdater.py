@@ -28,6 +28,11 @@ NOTIFY_DELAY = 60 * 5  # 5 minute
 OLD_BACKUP_ENTITY_NAME = "sensor.snapshot_backup"
 BACKUP_ENTITY_NAME = "sensor.backup_state"
 
+NOTIFY_SERVICE_PROBLEM_TITLE = "Backups need attention"
+NOTIFY_SERVICE_PROBLEM_MESSAGE = "Google Drive Backup is having trouble making or uploading backups. Open the add-on for details."
+NOTIFY_SERVICE_RESOLVED_TITLE = "Backups are working again"
+NOTIFY_SERVICE_RESOLVED_MESSAGE = "Google Drive Backup is making and uploading backups again."
+
 REASSURING_MESSAGE = "Unable to reach Home Assistant (HTTP {0}).  This is normal if Home Assistant is restarting.  You will probably see some errors in the supervisor logs until it comes back online."
 
 
@@ -43,6 +48,7 @@ class HaUpdater(Worker):
         self._requests: HaRequests = requests
         self._info = global_info
         self._notified = False
+        self._notify_service_notified = False
         self._backoff = Backoff(max=MAX_BACKOFF, base=FIRST_BACKOFF)
         self._first_error = None
         self._trigger_once = False
@@ -80,6 +86,7 @@ class HaUpdater(Worker):
                 elif not self._stale() and self._notified:
                     await self._requests.dismissNotification()
                     self._notified = False
+            await self._maybeNotifyService()
             self._backoff.reset()
             self._first_error = None
             self._trigger_once = False
@@ -130,6 +137,25 @@ class HaUpdater(Worker):
             return "error"
         else:
             return "waiting" if self._info._first_sync else "backed_up"
+
+    async def _maybeNotifyService(self):
+        service = self._config.get(Setting.NOTIFY_SERVICE)
+        if not service:
+            self._notify_service_notified = False
+            return
+        stale = self._stale()
+        if stale == self._notify_service_notified:
+            return
+        if stale:
+            title, message = NOTIFY_SERVICE_PROBLEM_TITLE, NOTIFY_SERVICE_PROBLEM_MESSAGE
+        else:
+            title, message = NOTIFY_SERVICE_RESOLVED_TITLE, NOTIFY_SERVICE_RESOLVED_MESSAGE
+        try:
+            await self._requests.sendNotifyService(service, title, message, url=self._info.url)
+            self._notify_service_notified = stale
+        except Exception as e:
+            # A wrong service name shouldn't stop the sensors from updating, so just report it.
+            logger.error("Couldn't send a notification through '{0}': {1}".format(service, e))
 
     def _buildMqttState(self):
         update = self._buildBackupUpdate()
