@@ -1,3 +1,7 @@
+## v0.10.0 [2026-09-26]
+
+- New, optional ESPHome configuration backups: the ESPHome add-on's device configurations (`/config/esphome`) can be backed up to their own Google Drive folder, either with each new Home Assistant backup or on their own schedule. They're verified after uploading, skipped when nothing has changed, and old ones are cleaned up. Turn them on with `esphome_backup` or in the web UI's settings, which also shows when they were last backed up and has a "Back up now" link.
+
 ## v0.9.2 [2026-09-26]
 
 - Removed `build.yaml`, which the Supervisor now reports as deprecated. The Dockerfile names its own base image (Home Assistant's multi-arch Python image) and labels.

@@ -9,6 +9,7 @@ A Home Assistant add-on that keeps copies of your Home Assistant backups in Goog
 - **Cleans up old backups.** Choose how many to keep in Home Assistant and in Google Drive, or keep daily, weekly, monthly and yearly backups for longer.
 - **Restores in one step.** Restore any backup from the add-on, including ones that are only in Google Drive.
 - **Tells you when something's wrong.** Sensors, Home Assistant notifications, and optional messages to your phone.
+- **Backs up ESPHome configurations too (optional).** Your ESPHome device configurations go to their own Drive folder, with each backup or on their own schedule.
 - **Encrypts backups.** It uses your Home Assistant backup encryption key, or a password you choose.
 
 ## Install

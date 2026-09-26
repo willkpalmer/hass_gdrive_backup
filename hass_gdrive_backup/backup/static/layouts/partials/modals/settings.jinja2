@@ -520,6 +520,51 @@
         <div class="row">
           <div class="col s12">
             <label>
+              <input type="checkbox" name="esphome_backup" id="esphome_backup" class="filled-in checkbox-ha"
+                onchange="toggleSlide(this, 'settings_esphome_details');" />
+              <span>Back Up ESPHome Configuration</span>
+              <br />
+              <span class="helper-text">Also back up the ESPHome add-on's device configurations (/config/esphome) to
+                their own Google Drive folder. ESPHome's build cache isn't included, and nothing is uploaded if the
+                configurations haven't changed.</span>
+            </label>
+          </div>
+        </div>
+        <div class="row" id="settings_esphome_details" style="display: none">
+          <div class="col s11 offset-s1 row">
+            <div class="input-field col m6 s12">
+              <i class="material-icons prefix">folder</i>
+              <input type="text" id="esphome_drive_folder" name="esphome_drive_folder" class="validate" />
+              <label for="esphome_drive_folder">Google Drive Folder</label>
+              <span class="helper-text">The add-on creates this folder in your Google Drive.</span>
+            </div>
+            <div class="input-field col m6 s12">
+              <select id="esphome_schedule" name="esphome_schedule">
+                <option value="with_backups">With each new backup</option>
+                <option value="own_schedule">On its own schedule</option>
+              </select>
+              <label>When to Back Up</label>
+            </div>
+            <div class="input-field col m4 s12">
+              <input type="number" id="esphome_days_between_backups" name="esphome_days_between_backups" min="0" step="1" class="validate" />
+              <label for="esphome_days_between_backups">Days between backups</label>
+              <span class="helper-text">On its own schedule only. 0 turns it off.</span>
+            </div>
+            <div class="input-field col m4 s12">
+              <input type="text" id="esphome_backup_time_of_day" name="esphome_backup_time_of_day" pattern="^[0-2]\d:[0-5]\d$" class="validate" />
+              <label for="esphome_backup_time_of_day">Time of day</label>
+              <span class="helper-text">On its own schedule only, as 'HH:mm'.</span>
+            </div>
+            <div class="input-field col m4 s12">
+              <input type="number" id="esphome_max_backups_in_google_drive" name="esphome_max_backups_in_google_drive" min="0" class="validate" />
+              <label for="esphome_max_backups_in_google_drive">Backups to keep</label>
+              <span class="helper-text">In Google Drive, or 0 to keep all.</span>
+            </div>
+          </div>
+        </div>
+        <div class="row">
+          <div class="col s12">
+            <label>
               <span style="font-size: 15px">Look and Feel</span>
               <br />
               <span class="helper-text">Configure how this web UI looks</span>

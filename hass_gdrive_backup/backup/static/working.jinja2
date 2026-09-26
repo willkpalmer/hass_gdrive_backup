@@ -108,6 +108,13 @@
               Next Backup in <time datetime="" title="" id="next_backup" style="font-weight: 600;"></time>
             </span>
           </p>
+          <p style="display: none; align-items: center;" id="esphome_status">
+            <i class="material-icons" style="margin-right: 6px;">memory</i>
+            <span>
+              ESPHome configs: <span id="esphome_status_text"></span>
+              <a href="#!" onclick="esphomeBackupNow()">Back up now</a>
+            </span>
+          </p>
           <p style="display: none; align-items: center;" id="ha_schedule_note">
             <i class="material-icons" style="margin-right: 6px;">home</i>
             <span>

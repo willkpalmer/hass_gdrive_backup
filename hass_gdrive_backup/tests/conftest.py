@@ -164,6 +164,8 @@ async def generate_config(server_url: URL, ports, cleandir):
         Setting.INGRESS_PORT: ports.ingress,
         Setting.BACKUP_STARTUP_DELAY_MINUTES: 0,
         Setting.PING_TIMEOUT: 0.1,
+        Setting.ESPHOME_PATH: os.path.join(cleandir, "esphome"),
+        Setting.ESPHOME_STATE_PATH: "esphome_backup.json",
     })
 
 

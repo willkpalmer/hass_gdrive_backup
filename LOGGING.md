@@ -54,6 +54,7 @@ The rest of the name says which part of the app logged it:
 | `hass_gdrive_backup.ha.mqtt` | MQTT discovery sensors |
 | `hass_gdrive_backup.drive.*` | Uploading to, downloading from and managing Google Drive |
 | `hass_gdrive_backup.creds.*` | Google Drive sign-in and token refresh |
+| `hass_gdrive_backup.esphome.*` | Backing up the ESPHome configuration folder |
 | `hass_gdrive_backup.model.*` | Syncing: deciding what to back up, upload and clean up |
 | `hass_gdrive_backup.util.*` | Networking and DNS, backoff, disk space |
 | `hass_gdrive_backup.ui.*` | The add-on's web UI |

@@ -39,6 +39,16 @@ class Setting(Enum):
     NOTIFY_SERVICE = "notify_service"
     LOG_TO_HOME_ASSISTANT = "log_to_home_assistant"
 
+    # ESPHome configuration backups
+    ESPHOME_BACKUP = "esphome_backup"
+    ESPHOME_DRIVE_FOLDER = "esphome_drive_folder"
+    ESPHOME_SCHEDULE = "esphome_schedule"
+    ESPHOME_DAYS_BETWEEN_BACKUPS = "esphome_days_between_backups"
+    ESPHOME_BACKUP_TIME_OF_DAY = "esphome_backup_time_of_day"
+    ESPHOME_MAX_BACKUPS = "esphome_max_backups_in_google_drive"
+    ESPHOME_PATH = "esphome_path"
+    ESPHOME_STATE_PATH = "esphome_state_path"
+
     # Basic backup settings
     WARN_FOR_LOW_SPACE = "warn_for_low_space"
     LOW_SPACE_THRESHOLD = "low_space_threshold"
@@ -208,6 +218,14 @@ _DEFAULTS = {
     Setting.MQTT_DISCOVERY: True,
     Setting.NOTIFY_SERVICE: "",
     Setting.LOG_TO_HOME_ASSISTANT: True,
+    Setting.ESPHOME_BACKUP: False,
+    Setting.ESPHOME_DRIVE_FOLDER: "ESPHome Backups",
+    Setting.ESPHOME_SCHEDULE: "with_backups",
+    Setting.ESPHOME_DAYS_BETWEEN_BACKUPS: 1,
+    Setting.ESPHOME_BACKUP_TIME_OF_DAY: "",
+    Setting.ESPHOME_MAX_BACKUPS: 10,
+    Setting.ESPHOME_PATH: "/config/esphome",
+    Setting.ESPHOME_STATE_PATH: "/data/esphome_backup.json",
 
     # Generational backup settings
     Setting.GENERATIONAL_DAYS: 0,
@@ -354,6 +372,14 @@ _CONFIG = {
     Setting.USE_HOME_ASSISTANT_ENCRYPTION_KEY: "bool?",
     Setting.MQTT_DISCOVERY: "bool?",
     Setting.LOG_TO_HOME_ASSISTANT: "bool?",
+    Setting.ESPHOME_BACKUP: "bool?",
+    Setting.ESPHOME_DRIVE_FOLDER: "str?",
+    Setting.ESPHOME_SCHEDULE: "list(with_backups|own_schedule)?",
+    Setting.ESPHOME_DAYS_BETWEEN_BACKUPS: "float(0,)?",
+    Setting.ESPHOME_BACKUP_TIME_OF_DAY: "match(^[0-2]\\d:[0-5]\\d$)?",
+    Setting.ESPHOME_MAX_BACKUPS: "int(0,)?",
+    Setting.ESPHOME_PATH: "str?",
+    Setting.ESPHOME_STATE_PATH: "str?",
     Setting.NOTIFY_SERVICE: "match(^((notify\\.)?[a-z0-9_]+|)$)?",
 
     # Generational backup settings

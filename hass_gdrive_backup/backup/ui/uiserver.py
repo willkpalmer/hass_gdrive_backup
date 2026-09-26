@@ -16,6 +16,7 @@ from backup.config import Config, Setting, CreateOptions, BoolValidator, Startab
 from backup.const import SOURCE_GOOGLE_DRIVE, SOURCE_HA, GITHUB_BUG_TEMPLATE
 from backup.model import Coordinator, Backup, AbstractBackup
 from backup.model.coordinator import CANCEL_FOR_SETTINGS
+from backup.esphome import EsphomeBackup
 from backup.exceptions import KnownError, GoogleCredGenerateError, ensureKey
 from backup.util import GlobalInfo, Estimator, DataCache, UpgradeFlags
 from backup.file import File
@@ -47,8 +48,9 @@ class UiServer(Trigger, Startable):
                  time: Time, config: Config, global_info: GlobalInfo, estimator: Estimator,
                  session: ClientSession, exchanger_builder: ClassAssistedBuilder[Exchanger],
                  debug_worker: DebugWorker, folder_finder: FolderFinder, data_cache: DataCache,
-                 haupdater: HaUpdater, custom_auth_provider: ProviderOf[AuthCodeQuery]):
+                 haupdater: HaUpdater, custom_auth_provider: ProviderOf[AuthCodeQuery], esphome: EsphomeBackup):
         super().__init__()
+        self._esphome = esphome
         # Currently running server tasks
         self.runners = []
         self.exchanger_builder = exchanger_builder
@@ -106,6 +108,7 @@ class UiServer(Trigger, Startable):
             status['backups'].append(self.getBackupDetails(backup))
         status['ha_url_base'] = self._ha_source.getHomeAssistantUrl()
         core = self._ha_source.coreBackups
+        status['esphome'] = self._esphome.status()
         status['home_assistant_backups'] = {
             'scheduling': core.schedulesBackups,
             'available': core.available,
@@ -354,6 +357,20 @@ class UiServer(Trigger, Startable):
         # Copying from Google Drive can take a while, so restore in the background and report problems like a failed sync.
         self._restore_task = asyncio.create_task(self._doRestore(slug, password, partial), name="Restore backup")
         return web.json_response({'message': "Restoring the backup"})
+
+    async def esphomebackup(self, request: Request):
+        """Backs up the ESPHome configuration now, even if it hasn't changed."""
+        if not self._esphome.enabled():
+            return web.json_response({'message': "ESPHome backups are turned off in the settings"}, status=400)
+        self._esphome_task = asyncio.create_task(self._doEsphomeBackup(), name="ESPHome backup")
+        return web.json_response({'message': "Backing up the ESPHome configuration"})
+
+    async def _doEsphomeBackup(self):
+        try:
+            await self._esphome.backup(force=True)
+        except Exception:
+            # Logged, and shown in the status
+            pass
 
     async def _doRestore(self, slug, password, partial):
         try:
@@ -760,6 +777,7 @@ class UiServer(Trigger, Startable):
 
         self._addRoute(app, self.upload)
         self._addRoute(app, self.restore)
+        self._addRoute(app, self.esphomebackup)
         self._addRoute(app, self.download)
         self._addRoute(app, self.deleteSnapshot)
         self._addRoute(app, self.retain)

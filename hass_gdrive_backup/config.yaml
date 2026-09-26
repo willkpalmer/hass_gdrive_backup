@@ -1,5 +1,5 @@
 name: GDrive Backup Utility
-version: 0.9.2
+version: 0.10.0
 slug: hass_gdrive_backup
 description: Automatically back up Home Assistant to Google Drive, and restore from it
 arch:
@@ -74,6 +74,12 @@ schema:
   use_home_assistant_encryption_key: bool?
   mqtt_discovery: bool?
   log_to_home_assistant: bool?
+  esphome_backup: bool?
+  esphome_drive_folder: str?
+  esphome_schedule: list(with_backups|own_schedule)?
+  esphome_days_between_backups: float(0,)?
+  esphome_backup_time_of_day: match(^[0-2]\d:[0-5]\d$)?
+  esphome_max_backups_in_google_drive: int(0,)?
   notify_service: match(^((notify\.)?[a-z0-9_]+|)$)?
   background_color: match(^(#[0-9ABCDEFabcdef]{6}|)$)?
   accent_color: match(^(#[0-9ABCDEFabcdef]{6}|)$)?

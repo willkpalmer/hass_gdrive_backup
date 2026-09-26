@@ -231,6 +231,7 @@ function handleSettingsDialog(data) {
   showPallette($("#accent_color"));
 
   updateIgnoredBackupOptions();
+  toggleSlide(document.querySelector('#esphome_backup'), 'settings_esphome_details');
   M.updateTextFields();
 
   // Create options for the network mount based on settings

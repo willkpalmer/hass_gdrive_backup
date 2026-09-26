@@ -164,6 +164,46 @@ _Note_: Folders and add-ons must be identified by their "slug" name. It is recom
 
 A notify service to also send backup problems to, such as `notify.mobile_app_my_phone` to get them on your phone through the Home Assistant companion app. You get one message when backups need attention and another when they're working again. Tapping the notification opens the add-on.
 
+### ESPHome configuration backups
+
+Backs up the ESPHome add-on's device configurations (`/config/esphome`) to their own Google Drive folder, separately from your Home Assistant backups. This makes it easy to get a single device's configuration back without restoring a whole backup. ESPHome's build cache (`.esphome`) isn't included, since ESPHome rebuilds it. When the configurations haven't changed since the last ESPHome backup, nothing new is uploaded. The web UI shows when they were last backed up and has a "Back up now" link, which always uploads.
+
+Each backup is a `.tar.gz` file. It includes ESPHome's `secrets.yaml` and isn't encrypted, so it's only as private as your Google Drive.
+
+> Example: back up ESPHome configurations every night at 2am, keeping two weeks of them
+>
+> ```yaml
+> esphome_backup: true
+> esphome_schedule: own_schedule
+> esphome_days_between_backups: 1
+> esphome_backup_time_of_day: "02:00"
+> esphome_max_backups_in_google_drive: 14
+> ```
+
+#### Option: `esphome_backup` (default: False)
+
+Turns ESPHome configuration backups on.
+
+#### Option: `esphome_drive_folder` (default: "ESPHome Backups")
+
+The Google Drive folder to put them in. The add-on creates it at the top of your Drive. Changing the name starts a new folder; the old one is left as it is.
+
+#### Option: `esphome_schedule` (default: `with_backups`)
+
+`with_backups` backs up the ESPHome configurations each time a new Home Assistant backup is made, whether the add-on or Home Assistant made it. `own_schedule` uses the two options below instead.
+
+#### Option: `esphome_days_between_backups` (default: 1)
+
+With `own_schedule`, how many days apart ESPHome backups are. `0` stops scheduled ESPHome backups ("Back up now" still works).
+
+#### Option: `esphome_backup_time_of_day`
+
+With `own_schedule`, the time of day to back up, as `HH:MM` in 24-hour time. Leave it unset to back up that many days after the last one.
+
+#### Option: `esphome_max_backups_in_google_drive` (default: 10)
+
+How many ESPHome backups to keep in Google Drive. Older ones are deleted. `0` keeps them all.
+
 ### Option: `log_to_home_assistant` (default: True)
 
 Also writes the add-on's warnings and errors to Home Assistant's own log (Settings > System > Logs), under logger names starting with `hass_gdrive_backup`. See [LOGGING.md](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/LOGGING.md) for the log format.

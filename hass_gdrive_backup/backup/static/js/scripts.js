@@ -46,6 +46,13 @@ function sourceToName(source) {
   }
 }
 
+function esphomeBackupNow() {
+  postJson("esphomebackup", {}, function (data) {
+    toast("Backing up the ESPHome configuration");
+    setTimeout(refreshstats, 5000);
+  }, null, "Starting the ESPHome backup...");
+}
+
 function restoreClick(target) {
   openRestoreDialog($(target).data('backup'));
   //window.top.location.replace($(target).data('url'))
@@ -651,6 +658,17 @@ function processStatusUpdate(data) {
   $('#next_backup').empty().append(data.next_backup_text);
   $('#next_backup').attr("datetime", data.next_backup_machine);
   $('#next_backup').attr("title", data.next_backup_detail);
+
+  if (data.esphome && data.esphome.enabled) {
+    let text = data.esphome.last_backup ? "last backed up " + new Date(data.esphome.last_backup).toLocaleString() + "." : "not backed up yet.";
+    if (data.esphome.last_error) {
+      text += " The last attempt failed: " + data.esphome.last_error;
+    }
+    $('#esphome_status_text').text(text);
+    $('#esphome_status').css("display", "flex");
+  } else {
+    $('#esphome_status').hide();
+  }
 
   if (data.home_assistant_backups && data.home_assistant_backups.scheduling) {
     $('#ha_schedule_link').attr("href", getHomeAssistantUrl("config/backup/settings", data.ha_url_base));
