@@ -1,3 +1,9 @@
+## v0.9.0 [2026-09-26]
+
+- Log messages now use Home Assistant's log format, and every logger name starts with `hass_gdrive_backup`, so this app's backup messages are easy to find and filter in any log. See [LOGGING.md](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/LOGGING.md).
+- Warnings and errors are also written to Home Assistant's own log (Settings > System > Logs), with repeats limited to once every 15 minutes. Turn this off with `log_to_home_assistant: false`.
+- The add-on logs its name and version when it starts.
+
 ## v0.8.2 [2026-09-26]
 
 - The add-on's maintainer is now listed as willkpalmer. The help dialog and bug reports point to this repository's GitHub issues instead of the original author's email.

@@ -164,6 +164,10 @@ _Note_: Folders and add-ons must be identified by their "slug" name. It is recom
 
 A notify service to also send backup problems to, such as `notify.mobile_app_my_phone` to get them on your phone through the Home Assistant companion app. You get one message when backups need attention and another when they're working again. Tapping the notification opens the add-on.
 
+### Option: `log_to_home_assistant` (default: True)
+
+Also writes the add-on's warnings and errors to Home Assistant's own log (Settings > System > Logs), under logger names starting with `hass_gdrive_backup`. See [LOGGING.md](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/LOGGING.md) for the log format.
+
 ### Option: `mqtt_discovery` (default: True)
 
 When an MQTT broker is set up in Home Assistant (for example the Mosquitto broker add-on with the MQTT integration), the add-on creates its sensors through MQTT discovery, grouped under a "GDrive Backup Utility" device:

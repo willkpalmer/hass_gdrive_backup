@@ -308,6 +308,10 @@ class HaRequests():
             data["data"] = {"url": url, "clickAction": url}
         await self._postHaData("services/notify/" + name, data)
 
+    async def systemLogWrite(self, message: str, level: str, logger: str) -> None:
+        """Writes a message to Home Assistant's own log (home-assistant.log and Settings > System > Logs)."""
+        await self._postHaData("services/system_log/write", {"message": message, "level": level, "logger": logger})
+
     async def eventBackupStart(self, name, time):
         await self._sendEvent(EVENT_BACKUP_START, {
             'backup_name': name,

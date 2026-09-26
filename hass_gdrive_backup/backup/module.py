@@ -9,7 +9,7 @@ from typing import List
 from backup.config import Config, Startable, Setting
 from backup.drive import DriveSource
 from backup.ha import HaSource, HaUpdater
-from backup.ha import HaWebsocket, MqttPublisher
+from backup.ha import HaWebsocket, MqttPublisher, HaLogForwarder
 from backup.model import BackupDestination, BackupSource, Scyncer
 from backup.util import Resolver
 from backup.model import Coordinator, Precache, DestinationPrecache
@@ -53,9 +53,9 @@ class BaseModule(Module):
     @multiprovider
     @singleton
     def getStartables(self, debug_server: DebugServer, ha_updater: HaUpdater, debugger: DebugWorker, ha_source: HaSource,
-                      server: UiServer, restarter: Restarter, syncer: Scyncer, watcher: Watcher, precache: Precache, websocket: HaWebsocket, mqtt: MqttPublisher) -> List[Startable]:
+                      server: UiServer, restarter: Restarter, syncer: Scyncer, watcher: Watcher, precache: Precache, websocket: HaWebsocket, mqtt: MqttPublisher, log_forwarder: HaLogForwarder) -> List[Startable]:
         # Order here matters, since its the order in which components of the addon are initialized.
-        return [debug_server, ha_updater, debugger, ha_source, server, restarter, syncer, watcher, precache, websocket, mqtt]
+        return [log_forwarder, debug_server, ha_updater, debugger, ha_source, server, restarter, syncer, watcher, precache, websocket, mqtt]
 
     @provider
     @singleton

@@ -1,10 +1,20 @@
 import logging
+from collections import deque
 from logging import LogRecord, Formatter, ERROR
 from traceback import TracebackException
 from colorlog import ColoredFormatter
 from os.path import join, abspath
 
 HISTORY_SIZE = 1000
+
+# Every logger this app creates is named under this prefix (e.g. "hass_gdrive_backup.drive.drivesource"),
+# so its messages can be told apart from other add-ons and integrations in any log. See LOGGING.md.
+LOGGER_PREFIX = "hass_gdrive_backup"
+
+# The same line format as Home Assistant's own log, e.g.
+# 2026-09-26 14:26:31.123 ERROR (MainThread) [hass_gdrive_backup.drive.drivesource] Something broke
+LINE_FORMAT = '%(asctime)s.%(msecs)03d %(levelname)s (%(threadName)s) [%(name)s] %(message)s'
+DATE_FORMAT = '%Y-%m-%d %H:%M:%S'
 PATH_BASE = abspath(join(__file__, "..", ".."))
 
 logging.addLevelName(5, "TRACE")
@@ -61,8 +71,8 @@ class HistoryHandler(logging.Handler):
 CONSOLE = logging.StreamHandler()
 CONSOLE.setLevel(logging.INFO)
 formatter_color = ColoredFormatter(
-    '%(log_color)s%(asctime)s %(levelname)s %(message)s%(reset)s',
-    datefmt='%m-%d %H:%M:%S',
+    '%(log_color)s' + LINE_FORMAT + '%(reset)s',
+    datefmt=DATE_FORMAT,
     reset=True,
     log_colors={
         "DEBUG": "cyan",
@@ -77,7 +87,26 @@ CONSOLE.setFormatter(formatter_color)
 
 HISTORY = HistoryHandler()
 HISTORY.setLevel(logging.DEBUG)
-HISTORY.setFormatter(Formatter('%(asctime)s %(levelname)s [%(name)s] %(message)s', '%m-%d %H:%M:%S'))
+HISTORY.setFormatter(Formatter(LINE_FORMAT, DATE_FORMAT))
+
+
+class ForwardingHandler(logging.Handler):
+    """
+    Holds warnings and errors until HaLogForwarder sends them to Home Assistant's own log. Records can
+    come from any thread, so they're only queued here.
+    """
+
+    def __init__(self):
+        super().__init__(logging.WARNING)
+        self.pending = deque(maxlen=100)
+        self.enabled = False
+
+    def emit(self, record: LogRecord):
+        if self.enabled and not getattr(record, "skip_forwarding", False):
+            self.pending.append(record)
+
+
+FORWARD = ForwardingHandler()
 
 
 class StandardLogger(logging.Logger):
@@ -86,6 +115,7 @@ class StandardLogger(logging.Logger):
         self.setLevel(logging.TRACE)
         self.addHandler(CONSOLE)
         self.addHandler(HISTORY)
+        self.addHandler(FORWARD)
 
     def trace(self, msg, *args, **kwargs):
         self.log(logging.TRACE, msg, *args, **kwargs)
@@ -183,8 +213,17 @@ class StandardLogger(logging.Logger):
             pass
 
 
+def appLoggerName(name: str) -> str:
+    """Puts a module's logger name under LOGGER_PREFIX, e.g. "backup.drive.drivesource" -> "hass_gdrive_backup.drive.drivesource"."""
+    if name == LOGGER_PREFIX or name.startswith(LOGGER_PREFIX + "."):
+        return name
+    if name == "backup" or name.startswith("backup."):
+        return LOGGER_PREFIX + name[len("backup"):]
+    return LOGGER_PREFIX + "." + name
+
+
 def getLogger(name):
-    return StandardLogger(name)
+    return StandardLogger(appLoggerName(name))
 
 
 def getHistory(index, html):

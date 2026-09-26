@@ -37,6 +37,7 @@ class Setting(Enum):
     USE_HOME_ASSISTANT_ENCRYPTION_KEY = "use_home_assistant_encryption_key"
     MQTT_DISCOVERY = "mqtt_discovery"
     NOTIFY_SERVICE = "notify_service"
+    LOG_TO_HOME_ASSISTANT = "log_to_home_assistant"
 
     # Basic backup settings
     WARN_FOR_LOW_SPACE = "warn_for_low_space"
@@ -206,6 +207,7 @@ _DEFAULTS = {
     Setting.USE_HOME_ASSISTANT_ENCRYPTION_KEY: True,
     Setting.MQTT_DISCOVERY: True,
     Setting.NOTIFY_SERVICE: "",
+    Setting.LOG_TO_HOME_ASSISTANT: True,
 
     # Generational backup settings
     Setting.GENERATIONAL_DAYS: 0,
@@ -351,6 +353,7 @@ _CONFIG = {
     Setting.BACKUP_MODE: "list(auto|home_assistant|addon)?",
     Setting.USE_HOME_ASSISTANT_ENCRYPTION_KEY: "bool?",
     Setting.MQTT_DISCOVERY: "bool?",
+    Setting.LOG_TO_HOME_ASSISTANT: "bool?",
     Setting.NOTIFY_SERVICE: "match(^((notify\\.)?[a-z0-9_]+|)$)?",
 
     # Generational backup settings

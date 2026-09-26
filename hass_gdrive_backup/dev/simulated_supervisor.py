@@ -84,6 +84,7 @@ class SimulatedSupervisor(BaseServer):
         self._restores = []
         self._notify_services = {"mobile_app_phone"}
         self._notify_calls = []
+        self._system_log = []
         self._core_websocket_available = True
         self._core_event_subscribers = []
         self._core_websockets = set()
@@ -124,6 +125,7 @@ class SimulatedSupervisor(BaseServer):
             post("/core/api/services/persistent_notification/dismiss", self._dismissNotification),
             post("/core/api/services/persistent_notification/create", self._createNotification),
             post("/core/api/services/notify/{name}", self._notifyService),
+            post("/core/api/services/system_log/write", self._systemLogWrite),
             post("/core/api/events/{name}", self._haEventUpdate),
             post("/core/api/states/{entity}", self._haStateUpdate),
             delete("/core/api/states/{entity}", self._haStateDelete),
@@ -581,6 +583,15 @@ class SimulatedSupervisor(BaseServer):
         await self._verifyHeader(request)
         name = request.match_info.get('name')
         self._events.append((name, await request.json()))
+        return Response()
+
+    def getSystemLog(self):
+        """Messages written to Home Assistant's log, as system_log.write service data."""
+        return self._system_log.copy()
+
+    async def _systemLogWrite(self, request: Request):
+        await self._verifyHeader(request)
+        self._system_log.append(await request.json())
         return Response()
 
     def getNotifyServiceCalls(self):

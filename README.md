@@ -23,6 +23,7 @@ A Home Assistant add-on that keeps copies of your Home Assistant backups in Goog
 - [Configuration options](hass_gdrive_backup/DOCS.md)
 - [Guide and FAQ](FAQ.md)
 - [Running your own sign-in server](AUTH_SERVER.md)
+- [Log format](LOGGING.md)
 - [Changelog](hass_gdrive_backup/CHANGELOG.md)
 
 This is a fork of [sabeechen/hassio-google-drive-backup](https://github.com/sabeechen/hassio-google-drive-backup), updated for current versions of Home Assistant. It's installed separately from the original add-on, and backups made with either can be restored with either.

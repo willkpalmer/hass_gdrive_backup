@@ -1,7 +1,7 @@
 from injector import inject, singleton
 from typing import List
 
-from .config import Startable, Config, Setting
+from .config import Startable, Config, Setting, VERSION
 from .logger import getLogger
 
 logger = getLogger(__name__)
@@ -16,6 +16,7 @@ class Starter(Startable):
 
     async def start(self):
         logger.overrideLevel(self.config.get(Setting.CONSOLE_LOG_LEVEL), self.config.get(Setting.LOG_LEVEL))
+        logger.info("GDrive Backup Utility v%s starting", VERSION)
         for startable in self.startables:
             await startable.start()
 
