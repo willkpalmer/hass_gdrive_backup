@@ -95,7 +95,7 @@ Redundancy is the foundation of reliability. With local backups, Google Drive's 
 
 ### How do I restore a backup?
 The backups this addon creates are the same backups that Home Assistant makes by itself and can be restored using any of the methods documented elsewhere.  Here are few pointers to get you started.
-- If you can still get to the addon's web-UI then select the backup and click "Load into Home Assistant" have it copied back into Home Assistant.
+- If you can still get to the addon's web-UI, select the backup and click "Restore". You can restore everything or choose the Home Assistant configuration, folders and add-ons to restore. If the backup is only in Google Drive, the add-on copies it back into Home Assistant first. For an encrypted backup, the add-on uses your backup password or Home Assistant's backup encryption key unless you enter one.
 - If not (eg, maybe your hard drive died and you're starting over):
   - Download one of the backups you've previously created from [Google Drive](https://drive.google.com).
   - On whatever hardware you're using to run Home Assistant now, follow the [normal instructions](https://www.home-assistant.io/getting-started/) to install Home Assistant.

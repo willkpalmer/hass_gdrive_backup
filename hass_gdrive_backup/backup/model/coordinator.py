@@ -259,6 +259,16 @@ class Coordinator(Trigger):
         backup.addSource(created)
         self._updateFreshness()
 
+    async def restoreBackup(self, slug, password=None, partial=None):
+        """Restores a backup, first copying it into Home Assistant from Google Drive if it's only there."""
+        backup = self._ensureBackup(None, slug)
+        if backup.getSource(self._model.source.name()) is None:
+            logger.info("Copying '{0}' from Google Drive to Home Assistant so it can be restored".format(backup.name()))
+            await self.uploadBackups(slug)
+        backup = self._ensureBackup(self._model.source.name(), slug)
+        logger.info("Restoring '{0}'".format(backup.name()))
+        await self._model.source.restore(backup, password=password, partial=partial)
+
     async def startBackup(self, options: CreateOptions):
         return await self._withSoftLock(lambda: self._startBackup(options))
 

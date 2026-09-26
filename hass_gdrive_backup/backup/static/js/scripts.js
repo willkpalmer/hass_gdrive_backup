@@ -47,7 +47,7 @@ function sourceToName(source) {
 }
 
 function restoreClick(target) {
-  $('#restore_help_card').fadeIn(500);
+  openRestoreDialog($(target).data('backup'));
   //window.top.location.replace($(target).data('url'))
 }
 
@@ -792,7 +792,6 @@ function processStatusUpdate(data) {
   }
 
 
-  $("#restore_hard_link").attr("href", getHomeAssistantUrl(data.restore_backup_path, data.ha_url_base));
 
   last_data = data;
   

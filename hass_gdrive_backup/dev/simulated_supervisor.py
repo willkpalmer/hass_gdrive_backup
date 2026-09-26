@@ -80,6 +80,8 @@ class SimulatedSupervisor(BaseServer):
 
         # Simulates Home Assistant Core's backup websocket API (proxied by the supervisor at /core/websocket)
         self._mqtt_service = None
+        self._backup_passwords = {}
+        self._restores = []
         self._notify_services = {"mobile_app_phone"}
         self._notify_calls = []
         self._core_websocket_available = True
@@ -156,6 +158,8 @@ class SimulatedSupervisor(BaseServer):
             get('/backups/new/full', self._newbackup),
             get('/backups/{slug}/download', self._backupDownload),
             get('/backups/{slug}/info', self._backupDetail),
+            post('/backups/{slug}/restore/full', self._restoreBackup),
+            post('/backups/{slug}/restore/partial', self._restoreBackup),
             get('/debug/backups/lock', self._lock_backups),
 
             # TODO: remove once the api path is fully deprecated
@@ -334,6 +338,7 @@ class SimulatedSupervisor(BaseServer):
                     password=password)
                 backup_info = parseBackupInfo(data)
                 backup_info['extra'] = input_json.get('extra')
+                self._backup_passwords[slug] = password
                 self._backups[slug] = backup_info
                 self._backup_data[slug] = bytearray(data.getbuffer())
                 return slug
@@ -545,6 +550,22 @@ class SimulatedSupervisor(BaseServer):
         del self._entities[entity]
         self._attributes.pop(entity, None)
         return Response()
+
+    def getRestores(self):
+        """The restores requested, as (slug, "full" or "partial", request body)."""
+        return self._restores.copy()
+
+    async def _restoreBackup(self, request: Request):
+        await self._verifyHeader(request)
+        slug = request.match_info.get('slug')
+        if slug not in self._backups:
+            raise HTTPNotFound()
+        body = await request.json()
+        expected = self._backup_passwords.get(slug)
+        if expected is not None and body.get('password') != expected:
+            return self._formatErrorResponse("Invalid password for backup " + slug)
+        self._restores.append((slug, request.path.split("/")[-1], body))
+        return self._formatDataResponse({"job_id": self.generateId(8)})
 
     def setMqttService(self, info):
         """Sets the MQTT broker details the supervisor reports, or None when no broker is installed."""

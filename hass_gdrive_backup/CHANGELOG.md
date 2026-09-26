@@ -1,3 +1,7 @@
+## v0.8.0 [2026-09-26]
+
+- Backups can now be restored straight from the add-on: click "Restore" on any backup, including ones only in Google Drive (which are copied back into Home Assistant first). Restore everything, or choose the Home Assistant configuration, folders and add-ons to restore. Encrypted backups use your backup password or Home Assistant's backup encryption key unless you enter one.
+
 ## v0.7.0 [2026-09-26]
 
 - Added the `notify_service` option to also send backup problems through a notify service, such as your phone via the Home Assistant companion app, with a follow-up when backups are working again. It's also in the web UI's settings.

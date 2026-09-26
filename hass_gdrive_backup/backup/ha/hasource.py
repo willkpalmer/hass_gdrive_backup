@@ -432,6 +432,16 @@ class HaSource(BackupSource[HABackup], Startable):
         item = self._validateBackup(backup)
         return await self.harequests.download(item.slug())
 
+    async def restore(self, backup: Backup, password: Optional[str] = None, partial: Optional[Dict[str, Any]] = None) -> None:
+        """Starts restoring a backup that's in Home Assistant, working out its password if one isn't given."""
+        item: HABackup = self._validateBackup(backup)
+        if item.protected() and not password:
+            password = Password(self.config).resolve()
+            if not password:
+                await self._core.refresh()
+                password = self._core.encryptionKey
+        await self.harequests.restore(item.slug(), password, partial)
+
     async def retain(self, backup: Backup, retain: bool) -> None:
         item: HABackup = self._validateBackup(backup)
         item._retained = retain

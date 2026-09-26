@@ -77,6 +77,7 @@ class UiServer(Trigger, Startable):
         self._check_creds_error: Exception = None
         self._device_code_authorizer: AuthCodeQuery = None
         self._upload_event = asyncio.Event()
+        self._restore_task = None
 
     def name(self):
         return "UI Server"
@@ -219,7 +220,7 @@ class UiServer(Trigger, Startable):
             'sources': sources,
             'haVersion': False if backup.version() is None else backup.version(),
             'uploadable': backup.getSource(SOURCE_HA) is None and len(backup.sources) > 0,
-            'restorable': backup.getSource(SOURCE_HA) is not None,
+            'restorable': not (ha is not None and type(ha) is PendingBackup) and len(backup.sources) > 0,
             'status_detail': backup.getStatusDetail(),
             'upload_info': backup.getUploadInfo(self._time),
             'ignored': backup.ignore(),
@@ -334,6 +335,32 @@ class UiServer(Trigger, Startable):
         self._coord.getBackup(slug)
         await self._coord.note(data.get("note", None), slug)
         return web.json_response({'message': "Updated the backup's settings"})
+
+    async def restore(self, request: Request):
+        data = await request.json()
+        slug = data['slug']
+        password = data.get('password') or None
+        partial = data.get('partial')
+        if partial is not None:
+            partial = {
+                'homeassistant': bool(partial.get('homeassistant', False)),
+                'folders': [str(folder) for folder in partial.get('folders', [])],
+                'addons': [str(addon) for addon in partial.get('addons', [])],
+            }
+            if not partial['homeassistant'] and len(partial['folders']) == 0 and len(partial['addons']) == 0:
+                return web.json_response({'message': "Choose something to restore"}, status=400)
+        self._coord.getBackup(slug)
+        # Copying from Google Drive can take a while, so restore in the background and report problems like a failed sync.
+        self._restore_task = asyncio.create_task(self._doRestore(slug, password, partial), name="Restore backup")
+        return web.json_response({'message': "Restoring the backup"})
+
+    async def _doRestore(self, slug, password, partial):
+        try:
+            await self._coord.restoreBackup(slug, password=password, partial=partial)
+        except Exception as e:
+            logger.error("Couldn't restore the backup")
+            logger.printException(e)
+            self._global_info.failed(e)
 
     async def resolvefolder(self, request: Request):
         use_existing = BoolValidator.strToBool(
@@ -731,6 +758,7 @@ class UiServer(Trigger, Startable):
         self._addRoute(app, self.skipspacecheck)
 
         self._addRoute(app, self.upload)
+        self._addRoute(app, self.restore)
         self._addRoute(app, self.download)
         self._addRoute(app, self.deleteSnapshot)
         self._addRoute(app, self.retain)

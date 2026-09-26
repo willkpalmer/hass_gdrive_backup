@@ -1,5 +1,5 @@
 import os
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 
 from aiohttp import ClientSession, ClientTimeout
 from aiohttp.client_exceptions import ClientResponseError, ClientConnectorError
@@ -176,12 +176,26 @@ class HaRequests():
             }
 
     @supervisor_call
-    async def restore(self, slug: str, password: str = None) -> None:
-        url = self.getSupervisorURL().with_path("{1}/{0}/restore/full".format(slug, self._getBackupPath()))
-        if password:
-            await self._postHassioData(url, {'password': password})
+    async def restore(self, slug: str, password: str = None, partial: Optional[Dict[str, Any]] = None) -> None:
+        """
+        Starts restoring a backup. With partial, only restores what it selects:
+        {"homeassistant": bool, "folders": [...], "addons": [...]}.
+        """
+        if partial is None:
+            url = self.getSupervisorURL().with_path("{1}/{0}/restore/full".format(slug, self._getBackupPath()))
+            data: Dict[str, Any] = {}
         else:
-            await self._postHassioData(url, {})
+            url = self.getSupervisorURL().with_path("{1}/{0}/restore/partial".format(slug, self._getBackupPath()))
+            data = {
+                'homeassistant': bool(partial.get('homeassistant', False)),
+                'folders': list(partial.get('folders', [])),
+                'addons': list(partial.get('addons', [])),
+            }
+        # Restoring can stop Home Assistant and this add-on, so don't wait for it to finish.
+        data['background'] = True
+        if password:
+            data['password'] = password
+        await self._postHassioData(url, data)
 
     @supervisor_call
     async def download(self, slug) -> AsyncHttpGetter:

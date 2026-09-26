@@ -423,6 +423,7 @@
       cancelUploadHaClicked();
 
       $("#download_link").data('backup', backup);
+      $("#restore_link").data('backup', backup);
       cancelEditCommentClick()
       setInputValue("edit-comment-input", "");
       M.Modal.getInstance(document.getElementById('details_modal')).open();

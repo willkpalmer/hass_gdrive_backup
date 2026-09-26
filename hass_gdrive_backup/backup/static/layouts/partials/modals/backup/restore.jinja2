@@ -1,0 +1,125 @@
+<div id="restoremodal" class="modal modal-fixed-footer">
+  <div class="modal-content">
+    <h4>Restore <span id="restore_backup_name"></span></h4>
+    <p class="restore-from-drive-note">
+      This backup is only in Google Drive, so it will be copied to Home Assistant first. That can take a while for a
+      large backup.
+    </p>
+    <div class="row">
+      <div class="col s12">
+        <label>
+          <input name="restore_type" type="radio" value="full" id="restore_type_full" checked onchange="restoreTypeChanged()" />
+          <span>Full restore</span>
+        </label>
+        <br />
+        <span class="helper-text">Replaces everything with what's in the backup: Home Assistant's configuration, all
+          add-ons and folders. Home Assistant (and this add-on) restart during the restore.</span>
+      </div>
+      <div class="col s12 restore-partial-choice" style="margin-top: 10px">
+        <label>
+          <input name="restore_type" type="radio" value="partial" id="restore_type_partial" onchange="restoreTypeChanged()" />
+          <span>Choose what to restore</span>
+        </label>
+      </div>
+    </div>
+    <div class="row default-hidden" id="restore_partial_options">
+      <div class="col s11 offset-s1">
+        <ul id="restore_items"></ul>
+      </div>
+    </div>
+    <div class="row default-hidden" id="restore_password_block">
+      <div class="input-field col s12">
+        <i class="material-icons prefix">vpn_key</i>
+        <input type="password" autocomplete="off" id="restore_password" />
+        <label for="restore_password">Password</label>
+        <span class="helper-text">This backup is encrypted. Leave blank to use the add-on's backup password, or
+          Home Assistant's backup encryption key.</span>
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer">
+    <a href="#!" class="btn-flat" onclick="doRestore()"><i class="material-icons">settings_backup_restore</i>Restore</a>
+    <a href="#!" class="modal-close btn-flat"><i class="material-icons">close</i>Cancel</a>
+  </div>
+</div>
+<script type="text/javascript">
+  function restoreTypeChanged() {
+    if ($("#restore_type_partial").prop("checked")) {
+      $("#restore_partial_options").show();
+    } else {
+      $("#restore_partial_options").hide();
+    }
+  }
+
+  function restoreItem(kind, value, label) {
+    return `<li class="indented-li"><label>
+      <input type="checkbox" class="filled-in restore-item" data-kind="${kind}" data-value="${htmlEntities(value)}" checked />
+      <span>${htmlEntities(label)}</span></label></li>`;
+  }
+
+  function openRestoreDialog(backup) {
+    let modal = $("#restoremodal");
+    modal.data("backup", backup);
+    $("#restore_backup_name").text(backup.name);
+    $("#restore_type_full").prop("checked", true);
+    restoreTypeChanged();
+    $("#restore_password").val("");
+    let inHomeAssistant = backup.sources.some(source => source.key == "HomeAssistant");
+    $(".restore-from-drive-note", modal).toggle(!inHomeAssistant);
+    if (backup.protected) {
+      $("#restore_password_block").show();
+    } else {
+      $("#restore_password_block").hide();
+    }
+
+    let items = $("#restore_items");
+    items.html("");
+    if (backup.haVersion) {
+      items.append(restoreItem("homeassistant", "true", "Home Assistant configuration (v" + backup.haVersion + ")"));
+    }
+    for (let folder of backup.folders) {
+      items.append(restoreItem("folder", folder, "Folder: " + folder));
+    }
+    for (let addon of backup.addons) {
+      items.append(restoreItem("addon", addon.slug, "Add-on: " + addon.name));
+    }
+    // What's inside is only known once the backup is in Home Assistant
+    $(".restore-partial-choice", modal).toggle(items.children().length > 0);
+    M.updateTextFields();
+    M.Modal.getInstance(document.getElementById("restoremodal")).open();
+  }
+
+  function doRestore() {
+    let backup = $("#restoremodal").data("backup");
+    let body = { slug: backup.slug };
+    let password = $("#restore_password").val();
+    if (password.length > 0) {
+      body.password = password;
+    }
+    if ($("#restore_type_partial").prop("checked")) {
+      let partial = { homeassistant: false, folders: [], addons: [] };
+      $(".restore-item:checked").each(function () {
+        let kind = $(this).data("kind");
+        if (kind == "homeassistant") {
+          partial.homeassistant = true;
+        } else if (kind == "folder") {
+          partial.folders.push(String($(this).data("value")));
+        } else {
+          partial.addons.push(String($(this).data("value")));
+        }
+      });
+      if (!partial.homeassistant && partial.folders.length == 0 && partial.addons.length == 0) {
+        toast("Choose something to restore");
+        return;
+      }
+      body.partial = partial;
+    } else if (!confirm("Restore everything from '" + backup.name + "'? Home Assistant will restart and anything changed since this backup was made will be lost.")) {
+      return;
+    }
+    M.Modal.getInstance(document.getElementById("restoremodal")).close();
+    postJson("restore", body, function (data) {
+      toast("Restoring '" + backup.name + "'. Home Assistant may be unavailable for a while.");
+      refreshstats();
+    }, null, "Starting the restore...");
+  }
+</script>
