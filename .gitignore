@@ -13,7 +13,6 @@ dev/error.py
 dev/data/retained.json
 *.egg-info
 hass_gdrive_backup/dev/data/id.json
-hass_gdrive_backup/dev/data/stop_addon_state.json
 hass_gdrive_backup/dev/data/retained.json
 junit/test-results.xml
 .coverage

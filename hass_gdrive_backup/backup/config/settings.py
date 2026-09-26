@@ -54,8 +54,6 @@ class Setting(Enum):
     EXCLUDE_ADDONS = "exclude_addons"
     EXCLUDE_HA_DATABASE = "exclude_ha_database"
 
-    STOP_ADDONS = "stop_addons"
-    DISABLE_WATCHDOG_WHEN_STOPPING = "disable_watchdog_when_stopping"
 
     # UI Server Options
     USE_SSL = "use_ssl"
@@ -113,7 +111,6 @@ class Setting(Enum):
     DRIVE_DEVICE_CODE_URL = "drive_device_code_url"
     DRIVE_TOKEN_URL = "drive_token_url"
     SAVE_DRIVE_CREDS_PATH = "save_drive_creds_path"
-    STOP_ADDON_STATE_PATH = "stop_addon_state_path"
 
     # Timing and timeouts
     MAX_SYNC_INTERVAL_SECONDS = "max_sync_interval_seconds"
@@ -217,8 +214,6 @@ _DEFAULTS = {
 
     Setting.EXCLUDE_HA_DATABASE: False,
 
-    Setting.STOP_ADDONS: "",
-    Setting.DISABLE_WATCHDOG_WHEN_STOPPING: False,
 
     # UI Server settings
     Setting.USE_SSL: False,
@@ -273,7 +268,6 @@ _DEFAULTS = {
     Setting.INGRESS_TOKEN_FILE_PATH: "/data/ingress.dat",
     Setting.CONFIG_FILE_PATH: "/data/options.json",
     Setting.ID_FILE_PATH: "/data/id.json",
-    Setting.STOP_ADDON_STATE_PATH: '/data/stop_addon_state.json',
     Setting.DATA_CACHE_FILE_PATH: '/data/data_cache.json',
 
     # Various timeouts and intervals
@@ -360,8 +354,6 @@ _CONFIG = {
     Setting.EXCLUDE_ADDONS: "str?",
     Setting.EXCLUDE_HA_DATABASE: "bool?",
 
-    Setting.STOP_ADDONS: "str?",
-    Setting.DISABLE_WATCHDOG_WHEN_STOPPING: "bool?",
 
     # UI Server settings
     Setting.USE_SSL: "bool?",
@@ -416,7 +408,6 @@ _CONFIG = {
     Setting.INGRESS_TOKEN_FILE_PATH: "str?",
     Setting.CONFIG_FILE_PATH: "str?",
     Setting.ID_FILE_PATH: "str?",
-    Setting.STOP_ADDON_STATE_PATH: "str?",
     Setting.DATA_CACHE_FILE_PATH: "str?",
 
     # Various timeouts and intervals

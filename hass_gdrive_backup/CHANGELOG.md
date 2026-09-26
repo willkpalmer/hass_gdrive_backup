@@ -1,3 +1,7 @@
+## v0.2.0 [2026-09-26]
+
+- Removed the "Stop Addons" feature (and its "disable watchdog" option). The Supervisor now tells add-ons when they're being backed up, so stopping them first is no longer needed, and the feature often failed to restart add-ons afterward.
+
 ## v0.1.1 [2026-09-26]
 
 - Fixed a resource leak: the add-on's DNS resolvers were never closed, and each one keeps a file watch open. This also made the test suite fail once enough had accumulated.

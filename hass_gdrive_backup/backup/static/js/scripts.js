@@ -110,11 +110,6 @@ function errorReports(send) {
   $('#error_reports_card').fadeOut(500)
 }
 
-function dismissRemoveStopAddons() {
-  var jqxhr = $.get("dismiss_remove_stop_addons");
-  $('#stop_addon_removal_survey').fadeOut(500);
-}
-
 hideIngress = false;
 function exposeServer(expose) {
   var url = "exposeserver?expose=" + expose;
@@ -755,8 +750,6 @@ function processStatusUpdate(data) {
     question_card = "warn_upgrade_backups_card";
   } else if (data.warn_oob_oauth) {
     question_card = "warn_creds_deprecated_card";
-  } else if(data.warn_stop_addons) {
-    question_card = "stop_addon_removal_survey";
   }
 
   $('.question-card').each(function (i) {

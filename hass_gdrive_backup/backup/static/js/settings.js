@@ -128,20 +128,14 @@ function handleSettingsDialog(data) {
     config.generational_days > 0 || config.generational_weeks > 0 || config.generational_months > 0 || config.generational_years > 0);
 
   var exclude_addons = [];
-  var stop_addons = []
   if (config.hasOwnProperty('exclude_addons') && config.exclude_addons.length > 0) {
     exclude_addons = config.exclude_addons.split(",");
   }
-  if (config.hasOwnProperty('stop_addons') && config.stop_addons.length > 0) {
-    stop_addons = config.stop_addons.split(",");
-  }
 
   setInputValue("partial_backups", config.exclude_folders.length > 0 || exclude_addons.length > 0);
-  setInputValue("stop_addons", stop_addons.length > 0);
 
-  // Set the state of excluded and stopped addons.
+  // Set the state of excluded addons.
   $("#settings_addons").html("");
-  $("#stopped_addons").html("");
   for (addon in addons) {
     addon = addons[addon];
     template = `<li class="indented-li">
@@ -161,7 +155,6 @@ function handleSettingsDialog(data) {
       .replace("{version}", addon.version);
 
     $("#settings_addons").append(template.replace("{checked}", exclude_addons.includes(addon.slug) ? "" : "checked").replace("{selector}", "settings_addon_checkbox"));
-    $("#stopped_addons").append(template.replace("{checked}", stop_addons.includes(addon.slug) ? "checked" : "").replace("{selector}", "settings_stop_addon_checkbox"));
   }
 
   $("#folder_selection_list").html("");
@@ -237,7 +230,6 @@ function handleSettingsDialog(data) {
   showPallette($("#background_color"));
   showPallette($("#accent_color"));
 
-  toggleSlide(document.querySelector('#stop_addons'), 'settings_stop_addons_details');
   updateIgnoredBackupOptions();
   M.updateTextFields();
 
@@ -306,7 +298,6 @@ function saveSettings() {
   });
   excluded_addons = ""
   excluded_folders = ""
-  stop_addons = ""
   if ($("#partial_backups").prop('checked')) {
     $(".settings_folder_checkbox").each(function () {
       if (!$(this).is(":checked")) {
@@ -319,16 +310,8 @@ function saveSettings() {
       }
     });
   }
-  if ($("#stop_addons").prop('checked')) {
-    $(".settings_stop_addon_checkbox").each(function () {
-      if ($(this).is(":checked")) {
-        stop_addons = stop_addons + $(this).data('slug') + ",";
-      }
-    });
-  }
   config.exclude_folders = excluded_folders.replace(/(^,)|(,$)/g, "");
   config.exclude_addons = excluded_addons.replace(/(^,)|(,$)/g, "");
-  config.stop_addons = stop_addons.replace(/(^,)|(,$)/g, "");
   if (!$("#generational_enabled").prop('checked')) {
     generational_delete = ["generational_days", "generational_weeks", "generational_months", "generational_years"] 
     for (prop in generational_delete) {

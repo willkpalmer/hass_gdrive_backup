@@ -20,7 +20,6 @@ from .backupname import BackupName
 from ..time import Time
 from ..logger import getLogger, StandardLogger
 from backup.const import FOLDERS, NECESSARY_OLD_BACKUP_PLURAL_NAME
-from .addon_stopper import LOGGER, AddonStopper
 
 logger: StandardLogger = getLogger(__name__)
 
@@ -132,7 +131,7 @@ class HaSource(BackupSource[HABackup], Startable):
     Stores logic for interacting with the supervisor add-on API
     """
     @inject
-    def __init__(self, config: Config, time: Time, ha: HaRequests, info: GlobalInfo, stopper: AddonStopper, estimator: Estimator, data_cache: DataCache):
+    def __init__(self, config: Config, time: Time, ha: HaRequests, info: GlobalInfo, estimator: Estimator, data_cache: DataCache):
         super().__init__()
         self.config: Config = config
         self._data_cache = data_cache
@@ -152,7 +151,6 @@ class HaSource(BackupSource[HABackup], Startable):
         self.cached_retention = {}
         self._info = info
         self.pending_options = {}
-        self.stopper = stopper
         self.estimator = estimator
         self._addons = {}
         self._changes_from_last_query = False
@@ -208,9 +206,6 @@ class HaSource(BackupSource[HABackup], Startable):
                 if not self.pending_backup.isFailed() and not self.pending_backup.isComplete():
                     logger.info("A backup was already in progress")
                     raise BackupInProgress()
-
-            # try to stop addons
-            await self.stopper.stopAddons(self.self_info['slug'])
 
             # Create the backup palceholder object
             self.pending_backup = PendingBackup(
@@ -427,7 +422,7 @@ class HaSource(BackupSource[HABackup], Startable):
             self.config.update(
                 ensureKey("options", self.self_info, "addon metdata"))
             if self.config.mustSaveUpgradeChanges():
-                LOGGER.info("The configuration format has changed in this version of the addon and your configuration will be automatically updated")
+                logger.info("The configuration format has changed in this version of the addon and your configuration will be automatically updated")
                 options = {}
                 for option in self.config.getAllConfig().keys():
                     options[option.value] = self.config.get(option)
@@ -501,10 +496,6 @@ class HaSource(BackupSource[HABackup], Startable):
         if self._pending_backup_task and not self._pending_backup_task.done():
             self._pending_backup_task.cancel()
 
-    def postSync(self):
-        self.stopper.allowRun()
-        self.stopper.isBackingUp(self.pending_backup is not None)
-
     async def _requestAsync(self, pending: PendingBackup, start=[]) -> None:
         try:
             result = await asyncio.wait_for(self.harequests.createBackup(pending._request_info), timeout=self.config.get(Setting.PENDING_BACKUP_TIMEOUT_SECONDS))
@@ -528,7 +519,6 @@ class HaSource(BackupSource[HABackup], Startable):
                 logger.error("Failed to get sueprvisor logs after failed backup request")
                 logger.printException(e)
         finally:
-            await self.stopper.startAddons()
             self.trigger()
 
     def _buildBackupInfo(self, options: CreateOptions):

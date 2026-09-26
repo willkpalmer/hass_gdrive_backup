@@ -10,12 +10,12 @@ from backup.const import SOURCE_HA
 from backup.exceptions import (HomeAssistantDeleteError, BackupInProgress,
                                BackupPasswordKeyInvalid, UploadFailed, SupervisorConnectionError, SupervisorPermissionError, SupervisorTimeoutError, UnknownNetworkStorageError, InactiveNetworkStorageError)
 from backup.util import GlobalInfo, DataCache, KEY_CREATED, KEY_LAST_SEEN, KEY_NAME
-from backup.ha import HaSource, PendingBackup, EVENT_BACKUP_END, EVENT_BACKUP_START, HABackup, Password, AddonStopper
+from backup.ha import HaSource, PendingBackup, EVENT_BACKUP_END, EVENT_BACKUP_START, HABackup, Password
 from backup.model import DummyBackup
 from dev.simulationserver import SimulationServer
 from .faketime import FakeTime
 from .helpers import all_addons, all_folders, createBackupTar, getTestStream
-from dev.simulated_supervisor import SimulatedSupervisor, URL_MATCH_SELF_OPTIONS, URL_MATCH_START_ADDON, URL_MATCH_STOP_ADDON, URL_MATCH_BACKUP_FULL, URL_MATCH_BACKUP_DELETE, URL_MATCH_MISC_INFO, URL_MATCH_BACKUP_DOWNLOAD, URL_MATCH_BACKUPS, URL_MATCH_SNAPSHOT, URL_MATCH_MOUNT
+from dev.simulated_supervisor import SimulatedSupervisor, URL_MATCH_SELF_OPTIONS, URL_MATCH_BACKUP_FULL, URL_MATCH_BACKUP_DELETE, URL_MATCH_MISC_INFO, URL_MATCH_BACKUP_DOWNLOAD, URL_MATCH_BACKUPS, URL_MATCH_SNAPSHOT, URL_MATCH_MOUNT
 from dev.request_interceptor import RequestInterceptor
 from backup.model import Model
 from backup.time import Time
@@ -531,99 +531,6 @@ async def test_download_timeout(ha: HaSource, time, interceptor: RequestIntercep
     with pytest.raises(SupervisorTimeoutError):
         await direct_download.setup()
         await direct_download.read(1)
-
-
-@pytest.mark.asyncio
-async def test_start_and_stop_addon(ha: HaSource, time, interceptor: RequestInterceptor, config: Config, supervisor: SimulatedSupervisor, addon_stopper: AddonStopper) -> None:
-    addon_stopper.allowRun()
-    slug = "test_slug"
-    supervisor.installAddon(slug, "Test decription")
-    config.override(Setting.STOP_ADDONS, slug)
-    config.override(Setting.NEW_BACKUP_TIMEOUT_SECONDS, 0.001)
-
-    assert supervisor.addon(slug)["state"] == "started"
-    async with supervisor._backup_inner_lock:
-        await ha.create(CreateOptions(time.now(), "Test Name"))
-        assert supervisor.addon(slug)["state"] == "stopped"
-    await ha._pending_backup_task
-    assert supervisor.addon(slug)["state"] == "started"
-
-
-@pytest.mark.asyncio
-async def test_start_and_stop_two_addons(ha: HaSource, time, interceptor: RequestInterceptor, config: Config, supervisor: SimulatedSupervisor, addon_stopper: AddonStopper) -> None:
-    addon_stopper.allowRun()
-    slug1 = "test_slug_1"
-    supervisor.installAddon(slug1, "Test decription")
-
-    slug2 = "test_slug_2"
-    supervisor.installAddon(slug2, "Test decription")
-    config.override(Setting.STOP_ADDONS, ",".join([slug1, slug2]))
-    config.override(Setting.NEW_BACKUP_TIMEOUT_SECONDS, 0.001)
-
-    assert supervisor.addon(slug1)["state"] == "started"
-    assert supervisor.addon(slug2)["state"] == "started"
-    async with supervisor._backup_inner_lock:
-        await ha.create(CreateOptions(time.now(), "Test Name"))
-        assert supervisor.addon(slug1)["state"] == "stopped"
-        assert supervisor.addon(slug2)["state"] == "stopped"
-    await ha._pending_backup_task
-    assert supervisor.addon(slug1)["state"] == "started"
-    assert supervisor.addon(slug2)["state"] == "started"
-
-
-@pytest.mark.asyncio
-async def test_stop_addon_failure(ha: HaSource, time, interceptor: RequestInterceptor, config: Config, supervisor: SimulatedSupervisor, addon_stopper: AddonStopper) -> None:
-    addon_stopper.allowRun()
-    slug = "test_slug"
-    supervisor.installAddon(slug, "Test decription")
-    config.override(Setting.STOP_ADDONS, slug)
-    config.override(Setting.NEW_BACKUP_TIMEOUT_SECONDS, 0.001)
-    interceptor.setError(URL_MATCH_STOP_ADDON, 400)
-
-    assert supervisor.addon(slug)["state"] == "started"
-    async with supervisor._backup_inner_lock:
-        await ha.create(CreateOptions(time.now(), "Test Name"))
-        assert supervisor.addon(slug)["state"] == "started"
-    await ha._pending_backup_task
-    assert supervisor.addon(slug)["state"] == "started"
-    assert len(await ha.get()) == 1
-
-
-@pytest.mark.asyncio
-async def test_start_addon_failure(ha: HaSource, time, interceptor: RequestInterceptor, config: Config, supervisor: SimulatedSupervisor, addon_stopper: AddonStopper) -> None:
-    addon_stopper.allowRun()
-    slug = "test_slug"
-    supervisor.installAddon(slug, "Test decription")
-    config.override(Setting.STOP_ADDONS, slug)
-    config.override(Setting.NEW_BACKUP_TIMEOUT_SECONDS, 0.001)
-    interceptor.setError(URL_MATCH_START_ADDON, 400)
-
-    assert supervisor.addon(slug)["state"] == "started"
-    async with supervisor._backup_inner_lock:
-        await ha.create(CreateOptions(time.now(), "Test Name"))
-        assert supervisor.addon(slug)["state"] == "stopped"
-    await ha._pending_backup_task
-    assert supervisor.addon(slug)["state"] == "stopped"
-    assert len(await ha.get()) == 1
-
-
-@pytest.mark.asyncio
-async def test_ingore_self_when_stopping(ha: HaSource, time, interceptor: RequestInterceptor, config: Config, supervisor: SimulatedSupervisor, addon_stopper: AddonStopper) -> None:
-    addon_stopper.allowRun()
-    slug = supervisor._addon_slug
-    config.override(Setting.STOP_ADDONS, slug)
-    config.override(Setting.NEW_BACKUP_TIMEOUT_SECONDS, 0.001)
-    interceptor.setError(URL_MATCH_START_ADDON, 400)
-
-    assert supervisor.addon(slug)["state"] == "started"
-    async with supervisor._backup_inner_lock:
-        await ha.create(CreateOptions(time.now(), "Test Name"))
-        assert supervisor.addon(slug)["state"] == "started"
-    await ha._pending_backup_task
-    assert supervisor.addon(slug)["state"] == "started"
-    assert not interceptor.urlWasCalled(URL_MATCH_START_ADDON)
-    assert not interceptor.urlWasCalled(URL_MATCH_STOP_ADDON)
-    assert len(await ha.get()) == 1
 
 
 @pytest.mark.asyncio

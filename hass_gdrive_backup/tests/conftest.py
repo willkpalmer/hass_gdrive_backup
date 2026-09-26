@@ -25,7 +25,6 @@ from backup.module import BaseModule
 from backup.debugworker import DebugWorker
 from backup.creds import Creds, DriveRequester
 from backup.server import ErrorStore
-from backup.ha import AddonStopper
 from backup.ui import UiServer
 from backup.watcher import Watcher
 from .faketime import FakeTime
@@ -156,7 +155,6 @@ async def generate_config(server_url: URL, ports, cleandir):
         Setting.RETAINED_FILE_PATH: "retained.json",
         Setting.ID_FILE_PATH: "id.json",
         Setting.DATA_CACHE_FILE_PATH: "data_cache.json",
-        Setting.STOP_ADDON_STATE_PATH: "stop_addon.json",
         Setting.INGRESS_TOKEN_FILE_PATH: "ingress.dat",
         Setting.DEFAULT_DRIVE_CLIENT_ID: "test_client_id",
         Setting.DEFAULT_DRIVE_CLIENT_SECRET: "test_client_secret",
@@ -216,11 +214,6 @@ async def interceptor(injector: Injector):
 @pytest.fixture
 async def supervisor(injector: Injector, server, session):
     return injector.get(SimulatedSupervisor)
-
-
-@pytest.fixture
-async def addon_stopper(injector: Injector):
-    return injector.get(AddonStopper)
 
 
 @pytest.fixture

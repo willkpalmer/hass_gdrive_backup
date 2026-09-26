@@ -175,7 +175,6 @@ class UiServer(Trigger, Startable):
         # creation (v0.104.0). Every install of this add-on tracks creation from the start, so that never applies.
         status["notify_check_ignored"] = False
         status["warn_backup_upgrade"] = self.config.get(Setting.CALL_BACKUP_SNAPSHOT) and not self._data_cache.checkFlag(UpgradeFlags.NOTIFIED_ABOUT_BACKUP_RENAME)
-        status["warn_stop_addons"] = self.config.get(Setting.STOP_ADDONS) and not self._data_cache.checkFlag(UpgradeFlags.NOTIFIED_ABOUT_STOPADDONS)
         status["warn_upgrade_backups"] = self._data_cache.notifyForIgnoreUpgrades
         status["warn_oob_oauth"] = not self._data_cache.checkFlag(UpgradeFlags.NOTIFIED_ABOUT_OOB_FLOW) and self._coord._model.dest.might_be_oob_creds
         return status
@@ -480,11 +479,6 @@ class UiServer(Trigger, Startable):
         await self._updateConfiguration(validated)
         return web.json_response({'message': 'Configuration updated'})
 
-    async def dismiss_remove_stop_addons(self, request: Request):
-        self._data_cache.addFlag(UpgradeFlags.NOTIFIED_ABOUT_STOPADDONS)
-        self._data_cache.saveIfDirty()
-        return web.json_response({'message': 'Acknowledged'})
-
     async def callbackupsnapshot(self, request: Request):
         switch = BoolValidator.strToBool(request.query.get("switch", False))
 
@@ -746,7 +740,6 @@ class UiServer(Trigger, Startable):
         self._addRoute(app, self.ackignorecheck)
         self._addRoute(app, self.aknowledgeooboauth)
         self._addRoute(app, self.checkManualAuth)
-        self._addRoute(app, self.dismiss_remove_stop_addons)
 
     def _addRoute(self, app, method):
         app.add_routes([

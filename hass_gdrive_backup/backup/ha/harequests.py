@@ -112,16 +112,6 @@ class HaRequests():
             raise e
 
     @supervisor_call
-    async def startAddon(self, slug) -> None:
-        url = self.getSupervisorURL().with_path("addons/{0}/start".format(slug))
-        await self._postHassioData(url, {})
-
-    @supervisor_call
-    async def stopAddon(self, slug) -> None:
-        url = self.getSupervisorURL().with_path("addons/{0}/stop".format(slug))
-        await self._postHassioData(url, {})
-
-    @supervisor_call
     async def backup(self, slug):
         if slug in self.cache:
             info = self.cache[slug]
