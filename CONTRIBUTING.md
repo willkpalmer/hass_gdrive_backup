@@ -67,7 +67,7 @@ For some changes, just testing locally might not be enough, you may want to run 
   ```bash
   > cd hass_gdrive_backup
   > docker login
-  > docker build -t YOUR_DOCKER_USERNAME/amd64-hass_gdrive_backup:dev-testing --build-arg BUILD_FROM=ghcr.io/home-assistant/amd64-base-python:3.13-alpine3.24 .
+  > docker build -t YOUR_DOCKER_USERNAME/amd64-hass_gdrive_backup:dev-testing .
   > docker push YOUR_DOCKER_USERNAME/amd64-hass_gdrive_backup:dev-testing
   ```
   Then make a folder in the local addon directory like before, but only copy in config.yaml. Set these two keys in config.yaml to match what you uploaded:

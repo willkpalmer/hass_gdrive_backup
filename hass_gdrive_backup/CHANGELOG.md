@@ -1,3 +1,7 @@
+## v0.9.2 [2026-09-26]
+
+- Removed `build.yaml`, which the Supervisor now reports as deprecated. The Dockerfile names its own base image (Home Assistant's multi-arch Python image) and labels.
+
 ## v0.9.1 [2026-09-26]
 
 - A cancelled sync is no longer logged as an error (or copied to Home Assistant's log). Saving settings now logs "Restarting the sync to apply new settings", and a sync interrupted by the add-on stopping or updating says so, instead of both reporting "Sync was cancelled by you". Cancelling with the button still shows in the web UI.
