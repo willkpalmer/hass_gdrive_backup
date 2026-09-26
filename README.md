@@ -282,7 +282,7 @@ The logs there keep a pretty short history, so if you ahve a lot of other errors
 
 HACS tracks updates via GitHub Releases, not just commits to `master` — it compares the latest release tag against the installed version to decide whether to show an update. Releases are created automatically by the [Release workflow](.github/workflows/release.yml): on every push to `master`, it reads `version` from `hass_gdrive_backup/config.yaml` and, if there's no matching `v<version>` release yet, creates one (with auto-generated notes). So each time a change should be installable as an update:
 
-1. Bump `version` in `hass_gdrive_backup/config.yaml` (semantic versioning, e.g. `0.113.0` → `0.113.1`) and add a matching entry to `hass_gdrive_backup/CHANGELOG.md`.
+1. Bump `version` in `hass_gdrive_backup/config.yaml` (semantic versioning, e.g. `0.1.0` → `0.1.1`) and add a matching entry to `hass_gdrive_backup/CHANGELOG.md`.
 2. Push to `master`.
 
 Pushes that don't change the version are a no-op for the workflow. It can also be run by hand from the repository's **Actions** tab. If it fails with a permissions error, allow "Read and write permissions" under **Settings → Actions → General → Workflow permissions**.

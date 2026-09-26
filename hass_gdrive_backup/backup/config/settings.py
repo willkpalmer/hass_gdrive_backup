@@ -524,6 +524,12 @@ _VALIDATORS[Setting.PENDING_BACKUP_TIMEOUT_SECONDS] = DurationAsStringValidator(
 _VALIDATORS[Setting.UPLOAD_LIMIT_BYTES_PER_SECOND] = BytesizeAsStringValidator(Setting.UPLOAD_LIMIT_BYTES_PER_SECOND.value, minimum=0)
 VERSION = addon_config["version"]
 
+# The hosted token server shared with the original add-on (sabeechen/hassio-google-drive-backup) uses the
+# add-on version it's sent to pick an authentication protocol, and treats anything older than 0.101.3 as a
+# legacy client. This add-on restarted its own versioning at 0.1.0, so it reports the upstream version it
+# was forked from to that server instead of VERSION.
+AUTH_SERVER_COMPATIBILITY_VERSION = "0.112.1"
+
 
 def isStaging():
     return "staging" in VERSION

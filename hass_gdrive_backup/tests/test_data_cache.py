@@ -141,8 +141,8 @@ async def test_warn_upgrade_new_install(config: Config, time: Time):
 
 
 @pytest.mark.asyncio
-async def test_warn_upgrade_old_install(config: Config, time: Time):
-    """An old install of the addon warn about upgrade snapshots"""
+async def test_no_warn_upgrade_for_original_addon_data(config: Config, time: Time):
+    """Data from a pre-0.108.2 install of the original add-on doesn't bring back its legacy ignore behavior"""
     with open(config.get(Setting.DATA_CACHE_FILE_PATH), "w") as f:
         data = {
             "upgrades": [
@@ -155,8 +155,8 @@ async def test_warn_upgrade_old_install(config: Config, time: Time):
         }
         json.dump(data, f)
     cache = DataCache(config, time)
-    assert cache.notifyForIgnoreUpgrades
-    assert not cache._config.get(Setting.IGNORE_UPGRADE_BACKUPS)
+    assert not cache.notifyForIgnoreUpgrades
+    assert cache._config.get(Setting.IGNORE_UPGRADE_BACKUPS)
 
 
 @pytest.mark.asyncio

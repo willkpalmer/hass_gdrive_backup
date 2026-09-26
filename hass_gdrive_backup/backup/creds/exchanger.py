@@ -2,7 +2,7 @@ import asyncio
 from aiohttp import ClientSession, ClientConnectorError, ClientTimeout
 from .creds import Creds, KEY_CLIENT_ID, KEY_CLIENT_SECRET, KEY_ACCESS_TOKEN, KEY_REFRESH_TOKEN, KEY_EXPIRES_IN
 from ..exceptions import ensureKey, GoogleCredentialsExpired, CredRefreshGoogleError, CredRefreshMyError
-from ..config import Config, Setting, VERSION
+from ..config import Config, Setting, AUTH_SERVER_COMPATIBILITY_VERSION
 from yarl import URL
 from ..time import Time
 from ..logger import getLogger
@@ -108,7 +108,7 @@ class Exchanger():
         for url in token_paths:
             try:
                 headers = {
-                    'addon_version': VERSION,
+                    'addon_version': AUTH_SERVER_COMPATIBILITY_VERSION,
                     'client': self.config.clientIdentifier()
                 }
                 async with self.session.post(str(url), headers=headers, json=data, timeout=ClientTimeout(total=self.config.get(Setting.EXCHANGER_TIMEOUT_SECONDS))) as resp:

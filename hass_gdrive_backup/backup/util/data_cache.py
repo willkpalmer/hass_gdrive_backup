@@ -20,8 +20,6 @@ KEY_NOTE = "note"
 
 CACHE_EXPIRATION_DAYS = 30
 
-VERSION_DEFUALT_IGNORE_UPGRADES = Version.parse("0.108.2")
-
 
 @unique
 class UpgradeFlags(Enum):
@@ -127,7 +125,9 @@ class DataCache:
 
     @property
     def notifyForIgnoreUpgrades(self):
-        return self.firstVersion < VERSION_DEFUALT_IGNORE_UPGRADES and not self.checkFlag(UpgradeFlags.NOTIFIED_ABOUT_IGNORED_BACKUPS) and not self._config.isExplicit(Setting.IGNORE_OTHER_BACKUPS) and not self._config.isExplicit(Setting.IGNORE_UPGRADE_BACKUPS)
+        # The original add-on kept its old "don't ignore upgrade backups" behavior for installs that predated
+        # v0.108.2. Every install of this add-on starts with the current defaults, so that never applies.
+        return False
 
     def checkFlag(self, flag: UpgradeFlags):
         return flag.value in self._data.get(KEY_FLAGS, [])

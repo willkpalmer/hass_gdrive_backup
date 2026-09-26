@@ -257,7 +257,7 @@
         return_url = getOutterHomeUri()
         auth_url = URI(data.authenticate_url).query({
           'redirectbacktoken': encodeURIComponent(token_url.toString()),
-          'version': encodeURIComponent("{{ version }}"),
+          'version': encodeURIComponent("{{ auth_server_version }}"),
           'return': encodeURIComponent(return_url),
           'bg': themeStyleContainer.dataset.backgroundColor,
           "ac": themeStyleContainer.dataset.accentColor,

@@ -24,7 +24,7 @@ from backup.model import Coordinator, Backup
 from backup.drive import DriveSource, FolderFinder, OOB_CRED_CUTOFF
 from backup.drive.drivesource import FOLDER_MIME_TYPE, DriveRequests
 from backup.ha import HaSource, HaUpdater
-from backup.config import VERSION
+from backup.config import AUTH_SERVER_COMPATIBILITY_VERSION
 from .faketime import FakeTime
 from .helpers import compareStreams
 from yarl import URL
@@ -479,7 +479,7 @@ async def test_drive_cred_generation(reader: ReaderHelper, ui_server: UiServer, 
     # simulate the user going through the Drive authentication workflow
     auth_url = URL(status['authenticate_url']).with_query({
         "redirectbacktoken": reader.getUrl(True) + "token",
-        "version": VERSION,
+        "version": AUTH_SERVER_COMPATIBILITY_VERSION,
         "return": reader.getUrl(True)
     })
     async with session.get(auth_url) as resp:
@@ -1004,6 +1004,16 @@ async def test_update_ignore(reader: ReaderHelper, time: FakeTime, coord: Coordi
 
 
 @pytest.mark.asyncio
+async def test_auth_server_gets_compatibility_version(reader: ReaderHelper, ui_server: UiServer):
+    # The shared token server picks its auth protocol from the version it's sent, so it must never see
+    # this add-on's own (restarted) version number.
+    status = await reader.getjson("getstatus")
+    assert URL(status['choose_folder_url']).query["version"] == AUTH_SERVER_COMPATIBILITY_VERSION
+    # The index page's authorize link is built from this template value.
+    assert ui_server.base_context()['auth_server_version'] == AUTH_SERVER_COMPATIBILITY_VERSION
+
+
+@pytest.mark.asyncio
 async def test_check_ignored_backup_notification(reader: ReaderHelper, time: FakeTime, coord: Coordinator, config: Config, supervisor: SimulatedSupervisor, ha: HaSource, drive: DriveSource):
     # Create an "ignored" backup after upgrade to the current version.
     time.advance(days=1)
@@ -1027,20 +1037,15 @@ async def test_check_ignored_backup_notification(reader: ReaderHelper, time: Fak
     assert not status["backups"][1]["ignored"]
     assert not status["notify_check_ignored"]
 
-    # Create an ignored backup from "before" the addon was upgraded to v0.104.0
+    # An older ignored backup doesn't need a notification either, since every install of this add-on
+    # tracks which backups it created.
     await supervisor.createBackup({'name': "test_name"}, date=time.now() - timedelta(days=10))
     await coord.sync()
 
-    # The UI should nofify about checking ignored backups
     status = await reader.getjson("getstatus")
     assert status["backups"][0]["ignored"]
     assert status["backups"][1]["ignored"]
     assert not status["backups"][2]["ignored"]
-    assert status["notify_check_ignored"]
-
-    # Acknowledge the notification
-    await reader.postjson("ackignorecheck") == {'message': "Acknowledged."}
-    status = await reader.getjson("getstatus")
     assert not status["notify_check_ignored"]
 
 

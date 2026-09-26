@@ -12,7 +12,7 @@ from aiohttp import BasicAuth, hdrs, web, ClientSession, ClientResponseError
 from aiohttp.web import HTTPException, Request, HTTPSeeOther, HTTPNotFound
 from injector import ClassAssistedBuilder, ProviderOf, inject, singleton
 
-from backup.config import Config, Setting, CreateOptions, BoolValidator, Startable, Version, VERSION
+from backup.config import Config, Setting, CreateOptions, BoolValidator, Startable, VERSION, AUTH_SERVER_COMPATIBILITY_VERSION
 from backup.const import SOURCE_GOOGLE_DRIVE, SOURCE_HA, GITHUB_BUG_TEMPLATE
 from backup.model import Coordinator, Backup, AbstractBackup
 from backup.exceptions import KnownError, GoogleCredGenerateError, ensureKey
@@ -37,7 +37,6 @@ SCOPE: str = 'https://www.googleapis.com/auth/drive.file'
 
 MIME_TEXT_HTML = "text/html"
 MIME_JSON = "application/json"
-VERSION_CREATION_TRACKING = Version(0, 104, 0)
 
 
 @singleton
@@ -85,6 +84,7 @@ class UiServer(Trigger, Startable):
     def base_context(self):
         return {
             'version': VERSION,
+            'auth_server_version': AUTH_SERVER_COMPATIBILITY_VERSION,
             'backgroundColor': self.config.get(Setting.BACKGROUND_COLOR),
             'accentColor': self.config.get(Setting.ACCENT_COLOR),
             'coordEnabled': self._coord.enabled(),
@@ -154,7 +154,7 @@ class UiServer(Trigger, Startable):
         choose_url = str(URL(self.config.get(Setting.AUTHORIZATION_HOST)).with_path('/drive/picker').with_query({
             "bg": self.config.get(Setting.BACKGROUND_COLOR),
             "ac": self.config.get(Setting.ACCENT_COLOR),
-            "version": VERSION
+            "version": AUTH_SERVER_COMPATIBILITY_VERSION
         }))
         status['choose_folder_url'] = str(choose_url)
         status['dns_info'] = self._global_info.getDnsInfo()
@@ -171,12 +171,9 @@ class UiServer(Trigger, Startable):
         status['backup_name_keys'] = name_keys
         status['mounts'] = self._ha_source.mount_info
 
-        # Indicate the user should be notified for a specific situation where:
-        #  - They recently turned on "IGNORE_OTHER_BACKUPS"
-        #  - They have ignored backups created before upgrading to v0.104.0 or higher.
-        upgrade_date = self._data_cache.getUpgradeTime(VERSION_CREATION_TRACKING)
-        ignored = len(list(filter(lambda s: s.date() < upgrade_date, filter(Backup.ignore, self._coord.backups()))))
-        status["notify_check_ignored"] = ignored > 0 and self.ignore_other_turned_on
+        # The original add-on notified users about ignored backups created before it started tracking backup
+        # creation (v0.104.0). Every install of this add-on tracks creation from the start, so that never applies.
+        status["notify_check_ignored"] = False
         status["warn_backup_upgrade"] = self.config.get(Setting.CALL_BACKUP_SNAPSHOT) and not self._data_cache.checkFlag(UpgradeFlags.NOTIFIED_ABOUT_BACKUP_RENAME)
         status["warn_stop_addons"] = self.config.get(Setting.STOP_ADDONS) and not self._data_cache.checkFlag(UpgradeFlags.NOTIFIED_ABOUT_STOPADDONS)
         status["warn_upgrade_backups"] = self._data_cache.notifyForIgnoreUpgrades
