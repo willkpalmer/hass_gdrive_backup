@@ -1,3 +1,4 @@
+import asyncio
 import socket
 from typing import Any, Dict, List
 
@@ -17,7 +18,9 @@ TTL_HOURS = 12
 class Resolver(AsyncResolver):
     @inject
     def __init__(self, config: Config):
-        super().__init__()
+        # Passing an argument gives this resolver its own c-ares channel instead of aiohttp's shared one,
+        # so close() can actually release it.
+        super().__init__(nameservers=None)
         self.config = config
         self._original_dns = self._resolver
         self.setAlternateResolver()
@@ -44,12 +47,21 @@ class Resolver(AsyncResolver):
             self._resolver = self._alt_dns
 
     def setAlternateResolver(self):
+        previous = getattr(self, "_alt_dns", None)
+        if previous is not None and previous is not self._original_dns:
+            asyncio.get_running_loop().create_task(previous.close())
         if len(self.config.get(Setting.ALTERNATE_DNS_SERVERS)) > 0:
             self._alt_dns = aiodns.DNSResolver(loop=self._loop, nameservers=self.config.get(
                 Setting.ALTERNATE_DNS_SERVERS).split(","))
         else:
             self._alt_dns = self._original_dns
         self._alt_ns = self.config.get(Setting.ALTERNATE_DNS_SERVERS)
+
+    async def close(self) -> None:
+        # Each c-ares channel keeps an inotify watch on /etc (for resolv.conf changes), so release them.
+        if self._alt_dns is not self._original_dns:
+            await self._alt_dns.close()
+        await self._original_dns.close()
 
     def toggle(self):
         if self._resolver == self._original_dns:

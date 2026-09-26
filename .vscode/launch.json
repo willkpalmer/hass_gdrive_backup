@@ -96,57 +96,5 @@
                 "CLIENT_ID": "client_id"
             }
         },
-        {
-            "name": "(DEV) Build/Upload Addon Container",
-            "type": "python",
-            "request": "launch",
-            "python": "${command:python.interpreterPath}",
-            "module": "hass_gdrive_backup.dev.deploy_dev_addon",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}/hass_gdrive_backup",
-                "PORT": "12345",
-                "CLIENT_SECRET": "client_secret",
-                "CLIENT_ID": "client_id"
-            }
-        },
-        {
-            "name": "(PROD) Build/Upload Server Container",
-            "type": "python",
-            "request": "launch",
-            "python": "${command:python.interpreterPath}",
-            "module": "hass_gdrive_backup.dev.deploy_server",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}/hass_gdrive_backup",
-                "PORT": "12345",
-                "CLIENT_SECRET": "client_secret",
-                "CLIENT_ID": "client_id"
-            }
-        },
-        {
-            "name": "(DEV) Build/Upload Server Container",
-            "type": "python",
-            "request": "launch",
-            "python": "${command:python.interpreterPath}",
-            "module": "hass_gdrive_backup.dev.deploy_dev_server",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}/hass_gdrive_backup",
-                "PORT": "12345",
-                "CLIENT_SECRET": "client_secret",
-                "CLIENT_ID": "client_id"
-            }
-        },
-        {
-            "name": "(PROD) Build/Upload Addon Containers",
-            "type": "python",
-            "request": "launch",
-            "python": "${command:python.interpreterPath}",
-            "module": "hass_gdrive_backup.dev.deploy_addon",
-            "env": {
-                "PYTHONPATH": "${workspaceFolder}/hass_gdrive_backup",
-                "PORT": "12345",
-                "CLIENT_SECRET": "client_secret",
-                "CLIENT_ID": "client_id"
-            }
-        },
     ]
 }

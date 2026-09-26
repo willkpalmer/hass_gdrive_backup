@@ -3,12 +3,6 @@
     "version": "2.0.0",
     "tasks": [
         {
-            "label": "PUBLISH: New version to Docker Hub (requires working docker)",
-            "type": "shell",
-            "command": "./deploy.sh",
-            "problemMatcher": []
-        },
-        {
             "label": "Install addon libraries",
             "type": "process",
             "command": "${config:python.pythonPath}",
@@ -24,17 +18,6 @@
             "type": "process",
             "command": "${config:python.pythonPath}",
             "args": ["-m", "pip", "install", "-r", ".devcontainer/requirements-dev.txt"],
-            "problemMatcher": [],
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
-        },
-        {
-            "label": "[Re]create and run local addon",
-            "type": "process",
-            "command": "${config:python.pythonPath}",
-            "args": ["-m", "hass_gdrive_backup.dev.deploy_local_addon"],
             "problemMatcher": [],
             "group": {
                 "kind": "build",

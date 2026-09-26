@@ -1,3 +1,0 @@
-build:
-  docker:
-    web: hass_gdrive_backup/Dockerfile-server

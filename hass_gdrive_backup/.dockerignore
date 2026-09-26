@@ -4,4 +4,3 @@ tests
 dev
 *.egg-info
 Dockerfile-server
-cloudbuild-*.yaml

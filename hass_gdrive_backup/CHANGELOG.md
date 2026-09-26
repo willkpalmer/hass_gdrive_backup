@@ -1,3 +1,8 @@
+## v0.1.1 [2026-09-26]
+
+- Fixed a resource leak: the add-on's DNS resolvers were never closed, and each one keeps a file watch open. This also made the test suite fail once enough had accumulated.
+- Removed leftover deployment scripts, staging workflows and Heroku config from the original project.
+
 ## v0.1.0 [2026-09-26]
 
 First release of `hass_gdrive_backup`, a new add-on forked from [sabeechen/hassio-google-drive-backup](https://github.com/sabeechen/hassio-google-drive-backup) v0.112.1. It installs as a separate add-on (slug `hass_gdrive_backup`) and can't be upgraded to from the original, so install it fresh and authenticate with Google Drive again.

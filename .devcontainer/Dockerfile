@@ -19,9 +19,6 @@ RUN LATEST_COMPOSE_VERSION=$(curl -sSL "https://api.github.com/repos/docker/comp
     && curl -sSL "https://github.com/docker/compose/releases/download/${LATEST_COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose \
     && chmod +x /usr/local/bin/docker-compose
 
-# Install Heoku CLI
-RUN curl https://cli-assets.heroku.com/install-ubuntu.sh | sh
-
 # Install app dependencies
 COPY requirements-dev.txt ./
 RUN pip install --no-cache-dir -r requirements-dev.txt

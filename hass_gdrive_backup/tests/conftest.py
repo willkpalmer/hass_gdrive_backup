@@ -179,7 +179,9 @@ async def injector(cleandir, ports, generate_config):
     with open(os.path.join(cleandir, "credentials.dat"), "w") as f:
         f.write(json.dumps(drive_creds.serialize()))
 
-    return Injector([BaseModule(), TestModule(generate_config, ports)])
+    injector = Injector([BaseModule(), TestModule(generate_config, ports)])
+    yield injector
+    await injector.get(Resolver).close()
 
 
 @pytest.fixture
