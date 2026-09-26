@@ -1,3 +1,7 @@
+## v0.8.2 [2026-09-26]
+
+- The add-on's maintainer is now listed as willkpalmer. The help dialog and bug reports point to this repository's GitHub issues instead of the original author's email.
+
 ## v0.8.1 [2026-09-26]
 
 - Renamed the add-on to "GDrive Backup Utility". The slug and entity IDs are unchanged, so existing automations keep working.

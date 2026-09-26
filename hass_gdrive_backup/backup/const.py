@@ -50,7 +50,7 @@ NECESSARY_PROP_KEY_NAME = "snapshot_name"
 PROP_NOTE = "note"
 
 DRIVE_FOLDER_URL_FORMAT = "https://drive.google.com/drive/u/0/folders/{0}"
-GITHUB_ISSUE_URL = "https://github.com/willkpalmer/hass_gdrive_backup/issues/new?labels[]=People%20Management&labels[]=[Type]%20Bug&title={title}&assignee=sabeechen&body={body}"
+GITHUB_ISSUE_URL = "https://github.com/willkpalmer/hass_gdrive_backup/issues/new?labels[]=People%20Management&labels[]=[Type]%20Bug&title={title}&assignee=willkpalmer&body={body}"
 GITHUB_BUG_TEMPLATE = """
 ###### Description:
 ```

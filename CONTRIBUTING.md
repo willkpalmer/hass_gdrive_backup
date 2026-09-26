@@ -2,7 +2,7 @@
 
 ## About the project
 
-The project is mostly maintained by Stephen Beechen (stephen@beechens.com) whom you can reach out to for guidance. Before digging in to this, you might be helpful to familiarize yourself with some of the technologies used in the project.
+The project is maintained by [@willkpalmer](https://github.com/willkpalmer). It's a fork of [sabeechen/hassio-google-drive-backup](https://github.com/sabeechen/hassio-google-drive-backup), written by Stephen Beechen. For guidance, [open an issue on GitHub](https://github.com/willkpalmer/hass_gdrive_backup/issues). Before digging in to this, you might be helpful to familiarize yourself with some of the technologies used in the project.
 
 - [Developing Addons for Home Assistant](https://developers.home-assistant.io/docs/add-ons) - Useful to understand how addons work.
 - [Python](https://www.python.org/) - The addon is written in Python 3.11 and makes heavy use of the asyncio framework.
@@ -16,9 +16,7 @@ The project is mostly maintained by Stephen Beechen (stephen@beechens.com) whom 
  - If you're making a small change that fixes a bug I'm going to approve your PR quickly and heap you with praise.  If you make a huge change without talking to me first I'm going to review your PR slowly and move through it with suspicion.  A spectrum exists between those two extremes.  Please try to understand that I'm the one ultimately on the line for the addon's reputation.
    - Breaking up a large change into smaller manageable pieces make things easier.
    - You can reach out to me in any of these ways to talk about a change you're considering:
-     - Preferred: [File an issue on github](https://github.com/willkpalmer/hass_gdrive_backup/issues) proposing your changes.
-     - Next best: Email: stephen@beechens.com
-     - Acceptable but worst: Home Assistant Forums: [@sabeechen](https://community.home-assistant.io/u/sabeechen/summary)
+     - [File an issue on GitHub](https://github.com/willkpalmer/hass_gdrive_backup/issues) proposing your changes.
  - Releases of the addon are made as-needed for bug fixes and new features.  If you've made a signifigant change to the addon, you can expect me to communicate to you when you can expect to see it released.  Important fixes will often demand an out-of-schedule rushed release.
 ## Setting up a Development Environment
 
