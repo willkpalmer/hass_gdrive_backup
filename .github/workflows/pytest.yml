@@ -3,6 +3,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+permissions:
+  contents: read
+  # Publishing test results creates a check run and a pull request comment
+  checks: write
+  pull-requests: write
 jobs:
   run-pytest:
     runs-on: ubuntu-latest

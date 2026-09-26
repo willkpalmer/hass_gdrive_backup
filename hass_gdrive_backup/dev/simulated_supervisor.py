@@ -107,7 +107,7 @@ class SimulatedSupervisor(BaseServer):
             "schedule": {"days": [], "recurrence": "never", "time": None},
         }
 
-        self.installAddon(self._addon_slug, "Home Assistant Google drive Backup")
+        self.installAddon(self._addon_slug, "GDrive Backup Utility")
         self.installAddon("42", "The answer")
         self.installAddon("sgadg", "sdgsagsdgsggsd")
 

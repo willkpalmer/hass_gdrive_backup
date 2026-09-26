@@ -414,7 +414,7 @@ class UiServer(Trigger, Startable):
         def content():
             html = format == "colored"
             if format == "html":
-                yield "<html><head><title>Home Assistant Google Drive Backup Log</title></head><body><pre>\n"
+                yield "<html><head><title>GDrive Backup Utility Log</title></head><body><pre>\n"
             for line in getHistory(self.last_log_index, html):
                 self.last_log_index = line[0]
                 if line:

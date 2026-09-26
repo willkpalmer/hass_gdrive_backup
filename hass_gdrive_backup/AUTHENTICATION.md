@@ -1,5 +1,5 @@
 # Authentication with Google Drive
-This document describes how the addon (Home Assistant Google Drive Backup) authenticates with Google Drive and stores your credentials.  It's geared toward those who wish to know more detail and is not necessary to take advantage of the full features of the addon.  The document is provided in the interest of providing full transparency into how the add-on works.  I've tried to describe this as plainly as possible, but it is technical and therefore may not be understandable to everyone.  Feedback on its clarity is appreciated.
+This document describes how the addon (GDrive Backup Utility) authenticates with Google Drive and stores your credentials.  It's geared toward those who wish to know more detail and is not necessary to take advantage of the full features of the addon.  The document is provided in the interest of providing full transparency into how the add-on works.  I've tried to describe this as plainly as possible, but it is technical and therefore may not be understandable to everyone.  Feedback on its clarity is appreciated.
 
  > This document describes how authentication works if you use the big blue "AUTHENTICATE WITH GOOGLE DRIVE" button in the addon.  If you're using [your own Google Drive credentials](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/LOCAL_AUTH.md), then none of this applies.
 

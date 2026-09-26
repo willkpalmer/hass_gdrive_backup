@@ -15,7 +15,7 @@ from ..logger import getLogger
 
 logger = getLogger(__name__)
 
-NOTIFICATION_TITLE = "Home Assistant Google Drive Backup is Having Trouble"
+NOTIFICATION_TITLE = "GDrive Backup Utility is Having Trouble"
 NOTIFICATION_DESC_LINK = "The add-on is having trouble making backups and needs attention.  Please visit the add-on [status page]({0}) for details."
 NOTIFICATION_DESC_STATIC = "The add-on is having trouble making backups and needs attention.  Please visit the add-on status page for details."
 
@@ -29,9 +29,9 @@ OLD_BACKUP_ENTITY_NAME = "sensor.snapshot_backup"
 BACKUP_ENTITY_NAME = "sensor.backup_state"
 
 NOTIFY_SERVICE_PROBLEM_TITLE = "Backups need attention"
-NOTIFY_SERVICE_PROBLEM_MESSAGE = "Google Drive Backup is having trouble making or uploading backups. Open the add-on for details."
+NOTIFY_SERVICE_PROBLEM_MESSAGE = "GDrive Backup Utility is having trouble making or uploading backups. Open the add-on for details."
 NOTIFY_SERVICE_RESOLVED_TITLE = "Backups are working again"
-NOTIFY_SERVICE_RESOLVED_MESSAGE = "Google Drive Backup is making and uploading backups again."
+NOTIFY_SERVICE_RESOLVED_MESSAGE = "GDrive Backup Utility is making and uploading backups again."
 
 REASSURING_MESSAGE = "Unable to reach Home Assistant (HTTP {0}).  This is normal if Home Assistant is restarting.  You will probably see some errors in the supervisor logs until it comes back online."
 

@@ -1,8 +1,8 @@
-# Home Assistant Add-on: Google Assistant SDK
+# GDrive Backup Utility
 
 ## Installation
 
-To install the add-on, first follow the installation steps from the [README on GitHub](https://github.com/willkpalmer/hass_gdrive_backup#installation).
+To install the add-on, first follow the [installation steps on GitHub](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/FAQ.md#detailed-install-instructions).
 
 ## Configuration
 
@@ -144,11 +144,11 @@ When `backup_password` isn't set, the backups the add-on makes are encrypted wit
 
 ### Option: `backup_name` (default: "{type} Backup {year}-{month}-{day} {hr24}:{min}:{sec}")
 
-Sets the name for new backups. Variable parameters of the form `{variable_name}` can be used to modify the name to your liking. A list of available variables is available [here](https://github.com/willkpalmer/hass_gdrive_backup#can-i-give-backups-a-different-name).
+Sets the name for new backups. Variable parameters of the form `{variable_name}` can be used to modify the name to your liking. A list of available variables is available [here](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/FAQ.md#can-i-give-backups-a-different-name).
 
 ### Option: `generational_*`
 
-When set, older backups will be kept longer using a [generational backup scheme](https://en.wikipedia.org/wiki/Backup_rotation_scheme). See the [question here](https://github.com/willkpalmer/hass_gdrive_backup#can-i-keep-older-backups-for-longer) for configuration options.
+When set, older backups will be kept longer using a [generational backup scheme](https://en.wikipedia.org/wiki/Backup_rotation_scheme). See the [question here](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/FAQ.md#can-i-keep-older-backups-for-longer) for configuration options.
 
 ### Option: `exclude_folders`
 
@@ -166,7 +166,7 @@ A notify service to also send backup problems to, such as `notify.mobile_app_my_
 
 ### Option: `mqtt_discovery` (default: True)
 
-When an MQTT broker is set up in Home Assistant (for example the Mosquitto broker add-on with the MQTT integration), the add-on creates its sensors through MQTT discovery, grouped under a "Google Drive Backup" device:
+When an MQTT broker is set up in Home Assistant (for example the Mosquitto broker add-on with the MQTT integration), the add-on creates its sensors through MQTT discovery, grouped under a "GDrive Backup Utility" device:
 
 - `binary_sensor.backups_stale`: on when backups have stopped being made or uploaded
 - `sensor.backup_state`: `backed_up`, `waiting` or `error`, with details about every backup as attributes
@@ -177,15 +177,15 @@ These are regular entities: you can rename them and change their settings in Hom
 
 ### Option: `enable_backup_stale_sensor` (default: True)
 
-When false (and MQTT isn't used, see `mqtt_discovery`), the add-on will not publish the [binary_sensor.backups_stale](https://github.com/willkpalmer/hass_gdrive_backup#how-will-i-know-this-will-be-there-when-i-need-it) stale sensor.
+When false (and MQTT isn't used, see `mqtt_discovery`), the add-on will not publish the [binary_sensor.backups_stale](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/FAQ.md#how-will-i-know-this-will-be-there-when-i-need-it) stale sensor.
 
 ### Option: `enable_backup_state_sensor` (default: True)
 
-When false (and MQTT isn't used, see `mqtt_discovery`), the add-on will not publish the [sensor.backup_state](https://github.com/willkpalmer/hass_gdrive_backup#how-will-i-know-this-will-be-there-when-i-need-it) sensor.
+When false (and MQTT isn't used, see `mqtt_discovery`), the add-on will not publish the [sensor.backup_state](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/FAQ.md#how-will-i-know-this-will-be-there-when-i-need-it) sensor.
 
 ### Option: `notify_for_stale_backups` (default: True)
 
-When false, the add-on will send a [persistent notification](https://github.com/willkpalmer/hass_gdrive_backup#how-will-i-know-this-will-be-there-when-i-need-it) in Home Assistant when backups are stale.
+When false, the add-on will send a [persistent notification](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/FAQ.md#how-will-i-know-this-will-be-there-when-i-need-it) in Home Assistant when backups are stale.
 
 ---
 
@@ -233,4 +233,4 @@ When true, backups are always deleted after they've been uploaded to Google Driv
 
 ## FAQ
 
-Read the [FAQ on GitHub](https://github.com/willkpalmer/hass_gdrive_backup#faq).
+Read the [FAQ on GitHub](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/FAQ.md#faq).

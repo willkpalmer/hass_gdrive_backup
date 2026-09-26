@@ -186,7 +186,7 @@ class DriveSource(BackupDestination):
         if backup.note() is not None:
             desc = backup.note()
         else:
-            desc = 'A Home Assistant backup file uploaded by Home Assistant Google Drive Backup'
+            desc = 'A Home Assistant backup file uploaded by GDrive Backup Utility'
         file_metadata = {
             'name': str(backup.name()) + ".tar",
             'parents': [parent_id],

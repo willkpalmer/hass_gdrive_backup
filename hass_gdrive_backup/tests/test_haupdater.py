@@ -74,7 +74,7 @@ async def test_init_failure(updater: HaUpdater, global_info: GlobalInfo, time: F
     await updater.update()
     assert supervisor.getNotification() == {
         'message': 'The add-on is having trouble making backups and needs attention.  Please visit the add-on status page for details.',
-        'title': 'Home Assistant Google Drive Backup is Having Trouble',
+        'title': 'GDrive Backup Utility is Having Trouble',
         'notification_id': 'backup_broken'
     }
 
@@ -213,7 +213,7 @@ async def test_notification_link(updater: HaUpdater, server, time: FakeTime, glo
     await updater.update()
     assert supervisor.getNotification() == {
         'message': 'The add-on is having trouble making backups and needs attention.  Please visit the add-on [status page](http://localhost/test) for details.',
-        'title': 'Home Assistant Google Drive Backup is Having Trouble',
+        'title': 'GDrive Backup Utility is Having Trouble',
         'notification_id': 'backup_broken'
     }
 

@@ -94,3 +94,12 @@ You should be able to run tests from within the Visual Studio tests tab. Make su
 
 Test dependencies get injected by `pytest`, which are defined in the [conftest.py](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/hass_gdrive_backup/tests/conftest.py) file. This is responsible for starting the simulation server, mocking necessary classes, etc.
 Most classes have their own test file in the [tests](https://github.com/willkpalmer/hass_gdrive_backup/tree/master/hass_gdrive_backup/tests) directory. If you change anything in the code, you must also submit tests with your PR that verify that change. The only exception is that all the addon's JavaScript, I've never found a good way to do JavaScript tests.
+
+## Releasing updates (for maintainers)
+
+HACS tracks updates via GitHub Releases, not just commits to `master` — it compares the latest release tag against the installed version to decide whether to show an update. Releases are created automatically by the [Release workflow](.github/workflows/release.yml): on every push to `master`, it reads `version` from `hass_gdrive_backup/config.yaml` and, if there's no matching `v<version>` release yet, creates one (with auto-generated notes). So each time a change should be installable as an update:
+
+1. Bump `version` in `hass_gdrive_backup/config.yaml` (semantic versioning, e.g. `0.1.0` → `0.1.1`) and add a matching entry to `hass_gdrive_backup/CHANGELOG.md`.
+2. Push to `master`.
+
+Pushes that don't change the version are a no-op for the workflow. It can also be run by hand from the repository's **Actions** tab. If it fails with a permissions error, allow "Read and write permissions" under **Settings → Actions → General → Workflow permissions**.

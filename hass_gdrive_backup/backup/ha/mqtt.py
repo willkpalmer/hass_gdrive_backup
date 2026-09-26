@@ -138,7 +138,7 @@ class MqttPublisher(Startable):
         return {
             "dev": {
                 "ids": [DEVICE_ID],
-                "name": "Google Drive Backup",
+                "name": "GDrive Backup Utility",
                 "mf": "hass_gdrive_backup",
                 "sw": VERSION,
             },

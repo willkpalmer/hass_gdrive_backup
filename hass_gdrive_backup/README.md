@@ -1,34 +1,13 @@
-# Home Assistant Add-on: Google Drive Backup
+# GDrive Backup Utility
 
-A complete and easy way to upload your Home Assistant backups to Google Drive.
+Keeps copies of your Home Assistant backups in Google Drive, so you can recover your setup even if the device running Home Assistant fails.
 
-## About
+- Backs up on a schedule, using Home Assistant's automatic backups or its own.
+- Uploads each backup to Google Drive and verifies it arrived intact.
+- Cleans up old backups in Home Assistant and Google Drive.
+- Restores any backup in one step, even ones only in Google Drive.
+- Warns you through sensors, notifications or your phone when backups stop.
 
-Quickly set up a backup strategy without much fuss. It doesn't require much familiarity with Home Assistant, its architecture, or Google Drive. Detailed install instructions are provided below but you can just add the repo, click install and open the Web UI. It will tell you what to do and only takes a few simple clicks.
+After installing, start the add-on and open its web UI. It walks you through connecting Google Drive.
 
->This project requires financial support to make the Google Drive integration work, but it is free for you to use.  You can join those helping to keep the lights on at:
->  
->[<img src="https://raw.githubusercontent.com/willkpalmer/hass_gdrive_backup/master/images/bmc-button.svg" width=150 height=40 style="margin: 5px"/>](https://www.buymeacoffee.com/sabeechen)
->[<img src="https://raw.githubusercontent.com/willkpalmer/hass_gdrive_backup/master/images/paypal-button.svg" width=150 height=40 style="margin: 5px"/>](https://www.paypal.com/paypalme/stephenbeechen)
->[<img src="https://raw.githubusercontent.com/willkpalmer/hass_gdrive_backup/master/images/patreon-button.svg" width=150 height=40 style="margin: 5px"/>](https://www.patreon.com/bePatron?u=4064183)
->[<img src="https://raw.githubusercontent.com/willkpalmer/hass_gdrive_backup/master/images/github-sponsors-button.svg" width=150 height=40 style="margin: 5px"/>](https://github.com/sponsors/sabeechen)
->[<img src="https://raw.githubusercontent.com/willkpalmer/hass_gdrive_backup/master/images/monero-button.svg" width=150 height=40 style="margin: 5px"/>](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/donate-crypto.md)
->[<img src="https://raw.githubusercontent.com/willkpalmer/hass_gdrive_backup/master/images/bitcoin-button.svg" width=150 height=40 style="margin: 5px"/>](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/donate-crypto.md)
->[<img src="https://raw.githubusercontent.com/willkpalmer/hass_gdrive_backup/master/images/ethereum-button.svg" width=150 height=40 style="margin: 5px"/>](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/donate-crypto.md)
-
-
-### Features
-
-- Creates backups on a configurable schedule.
-- Uploads backups to Drive, even the ones it didn't create.
-- Clean up old backups in Home Assistant and Google Drive, so you don't run out of space.
-- Restore from a fresh install or recover quickly from disaster by uploading your backups directly from Google Drive.
-- Integrates with Home Assistant Notifications, and provides sensors you can trigger off of.
-- Notifies you when something goes wrong with your backups.
-- Super easy installation and configuration.
-- Privacy-centric design philosophy.
-- Comprehensive documentation.
-- _Most certainly_ doesn't mine bitcoin on your home automation server. Definitely no.
-
-See the [README on GitHub](https://github.com/willkpalmer/hass_gdrive_backup) for all the details, or just install the add-on and open the Web UI.
-The Web-UI explains everything you have to do.
+See the Documentation tab for every option, or the [guide and FAQ](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/FAQ.md).

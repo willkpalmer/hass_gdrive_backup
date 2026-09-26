@@ -1,3 +1,8 @@
+## v0.8.1 [2026-09-26]
+
+- Renamed the add-on to "GDrive Backup Utility". The slug and entity IDs are unchanged, so existing automations keep working.
+- Replaced the long repository README and the add-on store's info page with short descriptions. The detailed guide and FAQ are now in [FAQ.md](https://github.com/willkpalmer/hass_gdrive_backup/blob/master/FAQ.md).
+
 ## v0.8.0 [2026-09-26]
 
 - Backups can now be restored straight from the add-on: click "Restore" on any backup, including ones only in Google Drive (which are copied back into Home Assistant first). Restore everything, or choose the Home Assistant configuration, folders and add-ons to restore. Encrypted backups use your backup password or Home Assistant's backup encryption key unless you enter one.
