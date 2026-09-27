@@ -665,6 +665,12 @@ function processStatusUpdate(data) {
       text += " The last attempt failed: " + data.esphome.last_error;
     }
     $('#esphome_status_text').text(text);
+    if (data.esphome.folder_id) {
+      $('#esphome_folder_link').attr("href", "https://drive.google.com/drive/u/0/folders/" + data.esphome.folder_id);
+      $('#esphome_folder_span').show();
+    } else {
+      $('#esphome_folder_span').hide();
+    }
     $('#esphome_status').css("display", "flex");
   } else {
     $('#esphome_status').hide();

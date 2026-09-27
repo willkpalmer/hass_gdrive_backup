@@ -359,7 +359,7 @@ class UiServer(Trigger, Startable):
         return web.json_response({'message': "Restoring the backup"})
 
     async def esphomebackup(self, request: Request):
-        """Backs up the ESPHome configuration now, even if it hasn't changed."""
+        """Backs up the ESPHome configuration now."""
         if not self._esphome.enabled():
             return web.json_response({'message': "ESPHome backups are turned off in the settings"}, status=400)
         self._esphome_task = asyncio.create_task(self._doEsphomeBackup(), name="ESPHome backup")
@@ -367,7 +367,7 @@ class UiServer(Trigger, Startable):
 
     async def _doEsphomeBackup(self):
         try:
-            await self._esphome.backup(force=True)
+            await self._esphome.backup()
         except Exception:
             # Logged, and shown in the status
             pass
@@ -518,6 +518,8 @@ class UiServer(Trigger, Startable):
             'mounts': mounts,
             'defaults': default_config,
             'backup_folder': self.folder_finder.getCachedFolder(),
+            'esphome_folder': self._esphome.chosenFolder(),
+            'esphome_current_folder': self._esphome.currentFolder(),
             'is_custom_creds': self._coord._model.dest.isCustomCreds(),
         })
 
@@ -612,6 +614,9 @@ class UiServer(Trigger, Startable):
 
         validated, needUpdate = self.config.validate(update)
         message = await self._updateConfiguration(validated, ensureKey("backup_folder", data, "the configuration update request"), trigger=False)
+        esphome_folder = data.get("esphome_folder")
+        if self.config.get(Setting.ESPHOME_SPECIFY_FOLDER) and esphome_folder:
+            self._esphome.setChosenFolder(str(esphome_folder))
         try:
             await self._coord.cancel(reason=CANCEL_FOR_SETTINGS)
             await self.startSync(request)

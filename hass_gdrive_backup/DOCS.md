@@ -166,7 +166,9 @@ A notify service to also send backup problems to, such as `notify.mobile_app_my_
 
 ### ESPHome configuration backups
 
-Backs up the ESPHome add-on's device configurations (`/config/esphome`) to their own Google Drive folder, separately from your Home Assistant backups. This makes it easy to get a single device's configuration back without restoring a whole backup. ESPHome's build cache (`.esphome`) isn't included, since ESPHome rebuilds it. When the configurations haven't changed since the last ESPHome backup, nothing new is uploaded. The web UI shows when they were last backed up and has a "Back up now" link, which always uploads.
+Backs up the ESPHome add-on's device configurations (`/config/esphome`) to their own Google Drive folder, separately from your Home Assistant backups. This makes it easy to get a single device's configuration back without restoring a whole backup. ESPHome's build cache (`.esphome`) isn't included, since ESPHome rebuilds it. Every scheduled ESPHome backup uploads a new copy, even when the configurations haven't changed. The web UI shows when they were last backed up, links to the folder, and has a "Back up now" link.
+
+To choose the folder, open the add-on's settings, turn on "Back Up ESPHome Configuration", then "Manually specify the ESPHome backup folder", and use the "Choose Folder" button to pick a folder and paste its ID, just like the main backup folder. Otherwise the add-on creates an "ESPHome Backups" folder in your My Drive.
 
 Each backup is a `.tar.gz` file. It includes ESPHome's `secrets.yaml` and isn't encrypted, so it's only as private as your Google Drive.
 
@@ -184,9 +186,13 @@ Each backup is a `.tar.gz` file. It includes ESPHome's `secrets.yaml` and isn't 
 
 Turns ESPHome configuration backups on.
 
+#### Option: `esphome_specify_folder` (default: False)
+
+Upload ESPHome backups into a Google Drive folder you choose in the settings (with the "Choose Folder" button), instead of one the add-on creates.
+
 #### Option: `esphome_drive_folder` (default: "ESPHome Backups")
 
-The Google Drive folder to put them in. The add-on creates it at the top of your Drive. Changing the name starts a new folder; the old one is left as it is.
+When `esphome_specify_folder` is off, the name of the folder the add-on creates at the top of your Drive. Changing the name starts a new folder; the old one is left as it is.
 
 #### Option: `esphome_schedule` (default: `with_backups`)
 

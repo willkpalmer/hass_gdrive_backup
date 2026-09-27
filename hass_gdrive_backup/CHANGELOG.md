@@ -1,3 +1,9 @@
+## v0.11.0 [2026-09-27]
+
+- ESPHome backups now upload a new copy every time they're scheduled. Before, a scheduled ESPHome backup quietly uploaded nothing when the configurations hadn't changed since the last one, so it looked like it hadn't run.
+- The ESPHome backup folder is chosen the same way as the main backup folder: in the settings, turn on "Manually specify the ESPHome backup folder" and use "Choose Folder" to pick one and paste its ID (new option `esphome_specify_folder`). Otherwise the add-on still creates an "ESPHome Backups" folder. The status line links to the folder being used.
+- ESPHome backup errors now show their message in the web UI and log.
+
 ## v0.10.0 [2026-09-26]
 
 - New, optional ESPHome configuration backups: the ESPHome add-on's device configurations (`/config/esphome`) can be backed up to their own Google Drive folder, either with each new Home Assistant backup or on their own schedule. They're verified after uploading, skipped when nothing has changed, and old ones are cleaned up. Turn them on with `esphome_backup` or in the web UI's settings, which also shows when they were last backed up and has a "Back up now" link.

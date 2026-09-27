@@ -42,6 +42,7 @@ class Setting(Enum):
     # ESPHome configuration backups
     ESPHOME_BACKUP = "esphome_backup"
     ESPHOME_DRIVE_FOLDER = "esphome_drive_folder"
+    ESPHOME_SPECIFY_FOLDER = "esphome_specify_folder"
     ESPHOME_SCHEDULE = "esphome_schedule"
     ESPHOME_DAYS_BETWEEN_BACKUPS = "esphome_days_between_backups"
     ESPHOME_BACKUP_TIME_OF_DAY = "esphome_backup_time_of_day"
@@ -220,6 +221,7 @@ _DEFAULTS = {
     Setting.LOG_TO_HOME_ASSISTANT: True,
     Setting.ESPHOME_BACKUP: False,
     Setting.ESPHOME_DRIVE_FOLDER: "ESPHome Backups",
+    Setting.ESPHOME_SPECIFY_FOLDER: False,
     Setting.ESPHOME_SCHEDULE: "with_backups",
     Setting.ESPHOME_DAYS_BETWEEN_BACKUPS: 1,
     Setting.ESPHOME_BACKUP_TIME_OF_DAY: "",
@@ -374,6 +376,7 @@ _CONFIG = {
     Setting.LOG_TO_HOME_ASSISTANT: "bool?",
     Setting.ESPHOME_BACKUP: "bool?",
     Setting.ESPHOME_DRIVE_FOLDER: "str?",
+    Setting.ESPHOME_SPECIFY_FOLDER: "bool?",
     Setting.ESPHOME_SCHEDULE: "list(with_backups|own_schedule)?",
     Setting.ESPHOME_DAYS_BETWEEN_BACKUPS: "float(0,)?",
     Setting.ESPHOME_BACKUP_TIME_OF_DAY: "match(^[0-2]\\d:[0-5]\\d$)?",

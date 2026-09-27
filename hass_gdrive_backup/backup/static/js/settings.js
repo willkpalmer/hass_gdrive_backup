@@ -203,6 +203,16 @@ function handleSettingsDialog(data) {
 
   setInputValue("settings_specify_folder_id", data.backup_folder);
 
+  // The same for the ESPHome backup folder
+  if (data.esphome_current_folder && data.esphome_current_folder.length > 0) {
+    $("#esphome_current_folder_span").show()
+    $('#esphome_current_folder_link').attr("href", "https://drive.google.com/drive/u/0/folders/" + data.esphome_current_folder);
+  } else {
+    $("#esphome_current_folder_span").hide();
+  }
+  setInputValue("settings_esphome_folder_id", data.esphome_folder || "");
+  esphomeChooseFolderChanged();
+
   if (config.hasOwnProperty("backup_password")) {
     $("#backup_password").data("old_password", config.backup_password);
   } else {
@@ -256,6 +266,15 @@ function chooseFolderChanged() {
   M.updateTextFields();
 }
 
+function esphomeChooseFolderChanged() {
+  if ($("#esphome_specify_folder").is(':checked') && last_data && last_data.sources.GoogleDrive.enabled) {
+    $("#esphome_choose_folder_controls").show();
+  } else {
+    $("#esphome_choose_folder_controls").hide();
+  }
+  M.updateTextFields();
+}
+
 function updateIgnoredBackupOptions() {
   if ($("#ignore_upgrade_backups").prop('checked') || $("#ignore_other_backups").prop('checked')) {
     $("#ignored-backup-duration-block").fadeIn();
@@ -272,6 +291,10 @@ function saveSettings() {
 
   if (!checkForSecret()) {
     showSettingError({message: "New backup passwords don't match"})
+    return;
+  }
+  if ($("#esphome_backup").prop('checked') && $("#esphome_specify_folder").prop('checked') && $("#settings_esphome_folder_id").val().trim().length == 0) {
+    showSettingError({message: "Choose a Google Drive folder for ESPHome backups, or turn off \"Manually specify the ESPHome backup folder\"."})
     return;
   }
   toast("Saving...")
@@ -335,7 +358,7 @@ function saveSettings() {
   }
 
   modal = M.Modal.getInstance(document.getElementById("settings_modal"))
-  postJson("saveconfig", {"config": config, "backup_folder": $("#settings_specify_folder_id").val()}, closeSettings, showSettingError); 
+  postJson("saveconfig", {"config": config, "backup_folder": $("#settings_specify_folder_id").val(), "esphome_folder": $("#settings_esphome_folder_id").val().trim()}, closeSettings, showSettingError); 
 }
 
 function closeSettings(){

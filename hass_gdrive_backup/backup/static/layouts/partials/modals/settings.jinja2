@@ -525,18 +525,44 @@
               <span>Back Up ESPHome Configuration</span>
               <br />
               <span class="helper-text">Also back up the ESPHome add-on's device configurations (/config/esphome) to
-                their own Google Drive folder. ESPHome's build cache isn't included, and nothing is uploaded if the
-                configurations haven't changed.</span>
+                their own Google Drive folder. ESPHome's build cache isn't included.</span>
             </label>
           </div>
         </div>
         <div class="row" id="settings_esphome_details" style="display: none">
           <div class="col s11 offset-s1 row">
-            <div class="input-field col m6 s12">
-              <i class="material-icons prefix">folder</i>
-              <input type="text" id="esphome_drive_folder" name="esphome_drive_folder" class="validate" />
-              <label for="esphome_drive_folder">Google Drive Folder</label>
-              <span class="helper-text">The add-on creates this folder in your Google Drive.</span>
+            <div class="col s12">
+              <label>
+                <input type="checkbox" name="esphome_specify_folder" id="esphome_specify_folder"
+                  class="filled-in checkbox-ha" onchange="esphomeChooseFolderChanged();" />
+                <span>Manually specify the ESPHome backup folder</span>
+                <br />
+                <span class="helper-text">Specify manually which folder ESPHome backups should be uploaded into in
+                  Google Drive. If disabled, the addon will automatically create an "ESPHome Backups" folder in your My
+                  Drive whenever its needed.</span><span id="esphome_current_folder_span"><a
+                    id="esphome_current_folder_link" target="_blank" rel="noreferrer"> Click here</a> to see the folder
+                  currently being used.</span>
+              </label>
+              <br />
+              <div id="esphome_choose_folder_controls">
+                <div class="input-field col s11 offset-s1">
+                  <i class="material-icons prefix">folder_open</i>
+                  <input type="text" settings_ignore="true" id="settings_esphome_folder_id"
+                    name="settings_esphome_folder_id" class="validate" />
+                  <label for="settings_esphome_folder_id">ESPHome Backup Folder ID</label>
+                  <span class="helper-text hide-for-default-creds">The Google Drive ID of the folder you'd like to
+                    upload ESPHome backups into. You can get this id by navigating to the folder in
+                    <a href="https://drive.google.com" target="_blank" rel="noreferrer">Google Drive</a>
+                    and copying it out of the URL. It should be a long sequence of characters at the end of the
+                    URL.</span>
+                  <span class="helper-text hide-for-custom-creds">Use the "Choose Folder" button to open a new window
+                    where you can select the folder you'd like to use and paste its folder ID here. Doing this gives
+                    the addon permission to store ESPHome backups in that folder.</span>
+                  <a href="#!" id="esphome_choose_folder_button" onclick="chooseBackupFolder()"
+                    class="btn-flat hide-for-custom-creds" style="margin-left: 20px; margin-top: 10px"><i
+                      class="material-icons">open_in_new</i>Choose Folder</a>
+                </div>
+              </div>
             </div>
             <div class="input-field col m6 s12">
               <select id="esphome_schedule" name="esphome_schedule">

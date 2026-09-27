@@ -1,5 +1,4 @@
 import asyncio
-import hashlib
 import io
 import os
 import tarfile
@@ -10,7 +9,7 @@ from injector import inject, singleton
 
 from ..config import Config, Setting
 from ..drive.driverequests import DriveRequests, UploadHasher, FOLDER_MIME_TYPE
-from ..exceptions import UploadVerificationFailed
+from ..exceptions import KnownError, LogicError, UploadVerificationFailed
 from ..file import JsonFileSaver
 from ..logger import getLogger
 from ..model import Coordinator
@@ -37,9 +36,16 @@ EXCLUDED_DIRECTORIES = {".esphome", "__pycache__"}
 
 KEY_FOLDER_ID = "folder_id"
 KEY_FOLDER_NAME = "folder_name"
+KEY_CHOSEN_FOLDER_ID = "chosen_folder_id"
 KEY_LAST_BACKUP = "last_backup"
-KEY_FINGERPRINT = "fingerprint"
 KEY_LAST_FILE = "last_file"
+
+
+def describe(e: Exception) -> str:
+    """KnownErrors keep their message in message() rather than str()."""
+    if isinstance(e, KnownError):
+        return e.message()
+    return str(e)
 
 
 class BytesStream():
@@ -92,6 +98,10 @@ class EsphomeBackup(Worker):
         if self._retry_after is not None and now < self._retry_after:
             return
         if self.isDue(now):
+            if self._config.get(Setting.ESPHOME_SCHEDULE) == SCHEDULE_OWN:
+                logger.info("An ESPHome backup is due")
+            else:
+                logger.info("There's a new backup, so backing up the ESPHome configuration too")
             try:
                 await self.backup()
             except Exception:
@@ -128,35 +138,24 @@ class EsphomeBackup(Worker):
         next_date = date.fromordinal(last_local.toordinal() + max(1, int(days)))
         return self._time.toUtc(self._time.localize(datetime(next_date.year, next_date.month, next_date.day, time_of_day[0], time_of_day[1])))
 
-    async def backup(self, force: bool = False) -> str:
-        """
-        Backs up the ESPHome folder to Google Drive. Unless forced, skips the upload when nothing has
-        changed since the last backup. Returns "uploaded" or "unchanged".
-        """
+    async def backup(self) -> None:
+        """Backs up the ESPHome folder to Google Drive."""
         async with self._lock:
             try:
-                result = await self._backup(force)
+                await self._backup()
                 self._last_error = None
                 self._retry_after = None
-                return result
             except Exception as e:
                 self._last_error = e
-                logger.error("Couldn't back up the ESPHome configuration: {0}".format(e))
+                logger.error("Couldn't back up the ESPHome configuration: {0}".format(describe(e)))
                 raise
 
-    async def _backup(self, force: bool) -> str:
+    async def _backup(self) -> None:
         now = self._time.now()
         path = self._config.get(Setting.ESPHOME_PATH)
         if not os.path.isdir(path):
             raise FileNotFoundError("{0} doesn't exist. Is the ESPHome add-on installed?".format(path))
         files = await asyncio.get_running_loop().run_in_executor(None, self._listFiles, path)
-        fingerprint = self._fingerprint(files)
-        if not force and fingerprint == self._state.get(KEY_FINGERPRINT):
-            logger.info("The ESPHome configuration hasn't changed since the last backup, so there's nothing new to upload")
-            self._state[KEY_LAST_BACKUP] = now.isoformat()
-            self._saveState()
-            return "unchanged"
-
         data = await asyncio.get_running_loop().run_in_executor(None, self._archive, path, files)
         folder_id = await self._folder()
         name = "ESPHome {0}.tar.gz".format(self._time.toLocal(now).strftime("%Y-%m-%d %H-%M-%S"))
@@ -177,23 +176,22 @@ class EsphomeBackup(Worker):
             raise UploadVerificationFailed(name)
 
         self._state[KEY_LAST_BACKUP] = now.isoformat()
-        self._state[KEY_FINGERPRINT] = fingerprint
         self._state[KEY_LAST_FILE] = name
+        self._state.pop("fingerprint", None)
         self._saveState()
         await self._cleanUp(folder_id)
         logger.info("Backed up the ESPHome configuration ({0} files) to Google Drive".format(len(files)))
-        return "uploaded"
 
     def status(self) -> Dict[str, Any]:
         next_backup = self.nextBackup()
         return {
             'enabled': self.enabled(),
             'schedule': self._config.get(Setting.ESPHOME_SCHEDULE),
-            'folder': self._config.get(Setting.ESPHOME_DRIVE_FOLDER),
+            'folder_id': self.currentFolder(),
             'last_backup': self._state.get(KEY_LAST_BACKUP),
             'last_file': self._state.get(KEY_LAST_FILE),
             'next_backup': next_backup.isoformat() if next_backup else None,
-            'last_error': str(self._last_error) if self._last_error else None,
+            'last_error': describe(self._last_error) if self._last_error else None,
         }
 
     def _latestMainBackup(self) -> Optional[datetime]:
@@ -202,8 +200,39 @@ class EsphomeBackup(Worker):
             return None
         return max(backup.date() for backup in backups)
 
+    def chosenFolder(self) -> Optional[str]:
+        """The Google Drive folder ID chosen in the settings, used when esphome_specify_folder is on."""
+        return self._state.get(KEY_CHOSEN_FOLDER_ID)
+
+    def setChosenFolder(self, folder_id: str) -> None:
+        folder_id = folder_id.strip()
+        if folder_id == self.chosenFolder():
+            return
+        logger.info("Saving the ESPHome backup folder: {0}".format(folder_id))
+        self._state[KEY_CHOSEN_FOLDER_ID] = folder_id
+        self._saveState()
+
+    def currentFolder(self) -> Optional[str]:
+        """The Google Drive folder ESPHome backups go into, if it's known yet."""
+        if self._config.get(Setting.ESPHOME_SPECIFY_FOLDER):
+            return self.chosenFolder()
+        if self._state.get(KEY_FOLDER_NAME) == self._config.get(Setting.ESPHOME_DRIVE_FOLDER):
+            return self._state.get(KEY_FOLDER_ID)
+        return None
+
     async def _folder(self) -> str:
-        """Finds or creates the Google Drive folder for ESPHome backups."""
+        """The chosen Google Drive folder for ESPHome backups, or else one the add-on finds or creates."""
+        if self._config.get(Setting.ESPHOME_SPECIFY_FOLDER):
+            folder_id = self.chosenFolder()
+            if not folder_id:
+                raise LogicError("No Google Drive folder has been chosen for ESPHome backups. Choose one in the settings.")
+            try:
+                folder = await self._drive.get(folder_id)
+            except Exception as e:
+                raise LogicError("Couldn't open the Google Drive folder chosen for ESPHome backups ({0}). Choose it again in the settings with the 'Choose Folder' button.".format(e))
+            if folder.get("trashed", False):
+                raise LogicError("The Google Drive folder chosen for ESPHome backups is in the trash. Choose another in the settings.")
+            return folder["id"]
         name = self._config.get(Setting.ESPHOME_DRIVE_FOLDER)
         if self._state.get(KEY_FOLDER_ID) and self._state.get(KEY_FOLDER_NAME) == name:
             try:
@@ -245,8 +274,8 @@ class EsphomeBackup(Worker):
             await self._drive.delete(item["id"])
 
     @staticmethod
-    def _listFiles(path: str) -> List[Tuple[str, str, int, int]]:
-        """(relative path, full path, size, modified time) of every file to back up."""
+    def _listFiles(path: str) -> List[Tuple[str, str]]:
+        """(relative path, full path) of every file to back up."""
         files = []
         for root, directories, names in os.walk(path):
             directories[:] = sorted(d for d in directories if d not in EXCLUDED_DIRECTORIES)
@@ -254,22 +283,14 @@ class EsphomeBackup(Worker):
                 full = os.path.join(root, name)
                 if not os.path.isfile(full):
                     continue
-                stat = os.stat(full)
-                files.append((os.path.relpath(full, path), full, stat.st_size, stat.st_mtime_ns))
+                files.append((os.path.relpath(full, path), full))
         return files
-
-    @staticmethod
-    def _fingerprint(files) -> str:
-        digest = hashlib.sha256()
-        for relative, _, size, modified in files:
-            digest.update("{0}\0{1}\0{2}\n".format(relative, size, modified).encode())
-        return digest.hexdigest()
 
     @staticmethod
     def _archive(path: str, files) -> bytes:
         buffer = io.BytesIO()
         with tarfile.open(fileobj=buffer, mode="w:gz") as tar:
-            for relative, full, _, _ in files:
+            for relative, full in files:
                 tar.add(full, arcname=os.path.join("esphome", relative), recursive=False)
         return buffer.getvalue()
 

@@ -9,7 +9,7 @@ import pytest
 from backup.config import Config, Setting
 from backup.esphome import EsphomeBackup
 from backup.esphome.esphomebackup import PROP_KIND, KIND_BACKUP, KIND_FOLDER
-from backup.exceptions import UploadVerificationFailed
+from backup.exceptions import LogicError, UploadVerificationFailed
 from backup.model import Coordinator
 from dev.simulated_google import SimulatedGoogle
 from .conftest import ReaderHelper
@@ -48,7 +48,7 @@ def archiveNames(item):
 
 @pytest.mark.asyncio
 async def test_backup_to_its_own_folder(esphome: EsphomeBackup, google: SimulatedGoogle):
-    assert await esphome.backup() == "uploaded"
+    await esphome.backup()
     folders = driveItems(google, KIND_FOLDER)
     assert [folder["name"] for folder in folders] == ["ESPHome Backups"]
     assert folders[0]["mimeType"] == FOLDER_MIME_TYPE
@@ -61,29 +61,23 @@ async def test_backup_to_its_own_folder(esphome: EsphomeBackup, google: Simulate
 
 
 @pytest.mark.asyncio
-async def test_unchanged_config_isnt_uploaded_again(esphome: EsphomeBackup, google: SimulatedGoogle, esphome_dir, time: FakeTime):
-    await esphome.backup()
-    time.advance(hours=1)
-    assert await esphome.backup() == "unchanged"
+async def test_each_new_backup_uploads_even_if_unchanged(esphome: EsphomeBackup, google: SimulatedGoogle, coord: Coordinator, time: FakeTime):
+    await coord.sync()
+    await esphome.check()
     assert len(driveItems(google, KIND_BACKUP)) == 1
 
-    with open(os.path.join(esphome_dir, "garage.yaml"), "w") as f:
-        f.write("esphome:\n  name: garage\n")
-    time.advance(hours=1)
-    assert await esphome.backup() == "uploaded"
+    # The next scheduled backup gets its own ESPHome backup, though the configuration hasn't changed
+    time.advance(days=4)
+    await coord.sync()
+    await esphome.check()
     assert len(driveItems(google, KIND_BACKUP)) == 2
-
-    # Backing up on request uploads even when nothing changed
-    time.advance(hours=1)
-    assert await esphome.backup(force=True) == "uploaded"
-    assert len(driveItems(google, KIND_BACKUP)) == 3
 
 
 @pytest.mark.asyncio
 async def test_old_backups_are_deleted(esphome: EsphomeBackup, google: SimulatedGoogle, config: Config, time: FakeTime):
     config.override(Setting.ESPHOME_MAX_BACKUPS, 2)
     for _ in range(4):
-        await esphome.backup(force=True)
+        await esphome.backup()
         time.advance(hours=1)
     backups = driveItems(google, KIND_BACKUP)
     assert len(backups) == 2
@@ -152,14 +146,14 @@ async def test_missing_folder_is_reported(esphome: EsphomeBackup, esphome_dir, c
 
 @pytest.mark.asyncio
 async def test_folder_is_reused_or_changed(esphome: EsphomeBackup, google: SimulatedGoogle, config: Config, time: FakeTime):
-    await esphome.backup(force=True)
+    await esphome.backup()
     time.advance(hours=1)
-    await esphome.backup(force=True)
+    await esphome.backup()
     assert len(driveItems(google, KIND_FOLDER)) == 1
 
     config.override(Setting.ESPHOME_DRIVE_FOLDER, "Other Folder")
     time.advance(hours=1)
-    await esphome.backup(force=True)
+    await esphome.backup()
     folders = {folder["name"]: folder["id"] for folder in driveItems(google, KIND_FOLDER)}
     assert set(folders) == {"ESPHome Backups", "Other Folder"}
     newest = max(driveItems(google, KIND_BACKUP), key=lambda item: item["appProperties"]["hass_gdrive_backup_date"])
@@ -186,3 +180,42 @@ async def test_status_and_backup_now(reader: ReaderHelper, ui_server, esphome: E
     assert status["esphome"]["last_backup"] is not None
     assert status["esphome"]["last_file"].startswith("ESPHome ")
     assert len(driveItems(google, KIND_BACKUP)) == 1
+
+
+@pytest.mark.asyncio
+async def test_chosen_folder(esphome: EsphomeBackup, google: SimulatedGoogle, config: Config):
+    chosen = await esphome._drive.createFolder({'name': "Chosen", 'mimeType': FOLDER_MIME_TYPE})
+    config.override(Setting.ESPHOME_SPECIFY_FOLDER, True)
+    esphome.setChosenFolder(chosen["id"])
+    await esphome.backup()
+    backups = driveItems(google, KIND_BACKUP)
+    assert len(backups) == 1
+    assert backups[0]["parents"] == [chosen["id"]]
+    # It doesn't make a folder of its own
+    assert driveItems(google, KIND_FOLDER) == []
+    assert esphome.status()["folder_id"] == chosen["id"]
+
+
+@pytest.mark.asyncio
+async def test_chosen_folder_missing(esphome: EsphomeBackup, google: SimulatedGoogle, config: Config):
+    config.override(Setting.ESPHOME_SPECIFY_FOLDER, True)
+    with pytest.raises(LogicError):
+        await esphome.backup()
+    assert "Choose one in the settings" in esphome.status()["last_error"]
+
+    esphome.setChosenFolder("not-a-folder")
+    with pytest.raises(LogicError):
+        await esphome.backup()
+    assert "Choose it again" in esphome.status()["last_error"]
+    assert driveItems(google, KIND_BACKUP) == []
+
+
+@pytest.mark.asyncio
+async def test_choose_folder_in_settings(reader: ReaderHelper, ui_server, esphome: EsphomeBackup, config: Config):
+    update = {"config": {"esphome_backup": True, "esphome_specify_folder": True}, "backup_folder": "", "esphome_folder": " chosen_id "}
+    await reader.postjson("saveconfig", json=update)
+    assert config.get(Setting.ESPHOME_SPECIFY_FOLDER)
+    assert esphome.chosenFolder() == "chosen_id"
+    settings = await reader.postjson("getconfig")
+    assert settings["esphome_folder"] == "chosen_id"
+    assert settings["esphome_current_folder"] == "chosen_id"
