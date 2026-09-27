@@ -233,6 +233,9 @@ class UiServer(Trigger, Startable):
         }
         if isinstance(ha, PendingBackup):
             data["super_logs"] = ha.error_logs()
+            e = ha.exception()
+            if ha.isFailed() and e is not None:
+                data["failure"] = e.message() if isinstance(e, KnownError) else str(e)
         return data
 
     def formatAddons(self, backup_data):

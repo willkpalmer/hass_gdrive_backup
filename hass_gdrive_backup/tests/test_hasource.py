@@ -175,7 +175,8 @@ async def test_partial_backup(ha, time, server, config: Config):
 
         assert backup.backupType() == "partial"
         for search in all_folders:
-            if search == folder:
+            if search == folder or search == "addons/local":
+                # There are no local add-ons, so their folder is left out
                 assert search not in backup.details()['folders']
             else:
                 assert search in backup.details()['folders']
@@ -1073,3 +1074,15 @@ async def test_exclude_database(ha: HaSource, time, config: Config, supervisor: 
         backup = await ha.create(CreateOptions(time.now(), "Test Name"))
         assert isinstance(backup, PendingBackup)
         assert backup._request_info['homeassistant_exclude_database']
+
+
+@pytest.mark.asyncio
+async def test_partial_backup_local_addons_folder(ha: HaSource, time, server, config: Config):
+    config.override(Setting.NEW_BACKUP_TIMEOUT_SECONDS, 100)
+    config.override(Setting.EXCLUDE_FOLDERS, "share")
+    await ha.init()
+    assert "addons/local" not in ha._buildBackupInfo(CreateOptions(time.now(), "Test Name"))[0]["folders"]
+
+    # With a local add-on installed, its folder is backed up
+    ha.super_info.setdefault('addons', []).append({'slug': "local_my_addon", 'repository': "local"})
+    assert "addons/local" in ha._buildBackupInfo(CreateOptions(time.now(), "Test Name"))[0]["folders"]

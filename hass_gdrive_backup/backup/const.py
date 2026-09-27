@@ -99,6 +99,8 @@ If you have anything else that could help explain what happened, click "Markdown
  ```
  """
 
+FOLDER_LOCAL_ADDONS = "addons/local"
+
 FOLDERS = [
     {
         'slug': "homeassistant",
@@ -125,7 +127,7 @@ FOLDERS = [
         'description': 'Backup your "/share" directory.'
     },
     {
-        'slug': "addons/local",
+        'slug': FOLDER_LOCAL_ADDONS,
         'id': "folder_addons",
         'name': "Local Addons",
         'description': 'Backup your local addons directory. This directory will be empty unless you use it for add-on development.'

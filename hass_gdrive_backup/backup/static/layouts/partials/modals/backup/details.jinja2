@@ -377,8 +377,15 @@
           let modal = $('#pending_backup_modal');
           modal.data('slug', backup.slug);
           modal.data('backup', backup);
+          if (backup.failure) {
+            $('#pending_backup_failure_text').text(backup.failure);
+            $('#pending_backup_failure').show();
+          } else {
+            $('#pending_backup_failure').hide();
+          }
           const logs = backup.super_logs.split('\n');
           const container = document.getElementById('super_logs_pending_request');
+          container.innerHTML = "";
           logs.forEach(log => {
             const colorizedLog = colorizeLog(log);
             container.innerHTML += `${colorizedLog}\n`;

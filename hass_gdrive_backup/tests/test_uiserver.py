@@ -1183,3 +1183,18 @@ async def test_oob_warning(reader: ReaderHelper, ui_server: UiServer, config: Co
     data_cache.addFlag(UpgradeFlags.NOTIFIED_ABOUT_OOB_FLOW)
     status = await reader.getjson("getstatus")
     assert status['warn_oob_oauth'] is False
+
+
+@pytest.mark.asyncio
+async def test_failed_backup_shows_why(ui_server: UiServer, time: FakeTime):
+    from backup.ha import PendingBackup
+    from backup.exceptions import LogicError
+    pending = PendingBackup("Full", False, CreateOptions(time.now(), "Some Name"), {'name': "Some Name"}, ui_server.config, time)
+    pending.attach_logs("WARNING (MainThread) [supervisor.backups.backup] Can't find backup folder addons/local")
+    details = ui_server.getBackupDetails(Backup(pending))
+    assert "failure" not in details
+
+    pending.failed(LogicError("The disk is full"), time.now())
+    details = ui_server.getBackupDetails(Backup(pending))
+    assert details["failure"] == "The disk is full"
+    assert "addons/local" in details["super_logs"]

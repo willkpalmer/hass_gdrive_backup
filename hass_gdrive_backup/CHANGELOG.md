@@ -1,3 +1,8 @@
+## v0.11.1 [2026-09-27]
+
+- Partial backups no longer ask Home Assistant to include the local add-ons folder (`addons/local`) when no local add-ons are installed. Home Assistant only creates that folder for local add-ons, so asking for it logged "Can't find backup folder addons/local" in the Supervisor's log.
+- When a backup fails, the Supervisor log popup now shows the actual reason at the top, and notes that warnings like "Can't find backup folder" are usually harmless. Opening the popup again no longer repeats the log.
+
 ## v0.11.0 [2026-09-27]
 
 - ESPHome backups now upload a new copy every time they're scheduled. Before, a scheduled ESPHome backup quietly uploaded nothing when the configurations hadn't changed since the last one, so it looked like it hadn't run.

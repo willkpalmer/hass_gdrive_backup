@@ -20,7 +20,7 @@ from .password import Password
 from .backupname import BackupName
 from ..time import Time
 from ..logger import getLogger, StandardLogger
-from backup.const import FOLDERS, NECESSARY_OLD_BACKUP_PLURAL_NAME
+from backup.const import FOLDERS, FOLDER_LOCAL_ADDONS, NECESSARY_OLD_BACKUP_PLURAL_NAME
 
 logger: StandardLogger = getLogger(__name__)
 
@@ -68,6 +68,9 @@ class PendingBackup(AbstractBackup):
         self._failed = True
         self._exception = exception
         self._failed_at = time
+
+    def exception(self):
+        return self._exception
 
     def getFailureTime(self):
         return self._failed_at
@@ -582,6 +585,12 @@ class HaSource(BackupSource[HABackup], Startable):
                     return slug
             await asyncio.sleep(CORE_BACKUP_POLL_SECONDS)
 
+    def _hasLocalAddons(self) -> bool:
+        for addon in self.super_info.get('addons', {}):
+            if addon.get('repository') == "local" or addon.get('slug', "").startswith("local_"):
+                return True
+        return False
+
     def _buildBackupInfo(self, options: CreateOptions):
         addons: List[str] = []
         for addon in self.super_info.get('addons', {}):
@@ -607,6 +616,10 @@ class HaSource(BackupSource[HABackup], Startable):
         if type_name == "Full":
             del request_info['addons']
             del request_info['folders']
+        elif FOLDER_LOCAL_ADDONS in request_info['folders'] and not self._hasLocalAddons():
+            # Supervisor only makes the local add-ons folder when a local add-on is installed, and a
+            # partial backup that names it anyway logs "Can't find backup folder addons/local".
+            request_info['folders'].remove(FOLDER_LOCAL_ADDONS)
         password = Password(self.config).resolve()
         if not password and self.config.get(Setting.USE_HOME_ASSISTANT_ENCRYPTION_KEY):
             # Encrypt with the same key as Home Assistant's own backups, which the user already has saved.
